@@ -21,7 +21,16 @@
 {%- liquid
   assign fallback_handles = 'black-leather-bag,blue-silk-tuxedo,chequered-red-shirt,classic-leather-jacket,classic-varsity-top,zipped-jacket' | split: ','
   assign rendered_index = 0
+  assign products_font = section.settings.products_heading_font
 -%}
+
+{%- comment -%}
+  Emits the @font-face for the products heading. Naming a family in CSS alone
+  would not load it — Shopify serves the file via font_face.
+{%- endcomment -%}
+{% style %}
+  {{ products_font | font_face: font_display: 'swap' }}
+{% endstyle %}
 
 <gift-guide-component
   class="gift-guide"
@@ -34,6 +43,9 @@
   style="
     --gg-accent: {{ section.settings.accent_color | default: '#FFF544' }};
     --gg-arrow: url('{{ 'arrow.svg' | asset_url }}');
+    --gg-products-font: {{ products_font.family }}, {{ products_font.fallback_families }};
+    --gg-products-font-style: {{ products_font.style }};
+    --gg-products-font-weight: {{ products_font.weight }};
   "
 >
   {%- comment -%}
@@ -607,7 +619,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75em;
+    /* Wider separation between the label and the arrow. */
+    gap: 1.5em;
+    /* Keeps the label and arrow on one line — "Choose Gift" was breaking in
+       the top bar when the column got tight. */
+    white-space: nowrap;
     padding: 1.15em 2.5em;
     border: 0;
     border-radius: 0;
@@ -865,10 +881,14 @@
 
   .gift-guide__products-heading {
     margin: 0 0 clamp(1rem, 2vw, 2rem);
-    font-family: var(--font-heading--family);
-    font-size: clamp(1.25rem, 1.6vw, 1.75rem);
-    font-weight: 400;
+    font-family: var(--gg-products-font, var(--font-heading--family));
+    font-style: var(--gg-products-font-style, normal);
+    /* 2.25rem is 36px, expressed in rem so it still honours a reader's
+       browser font-size setting. */
+    font-size: 2.25rem;
+    font-weight: var(--gg-products-font-weight, 400);
     line-height: 1.2;
+    letter-spacing: 0;
   }
 
   .gift-guide__grid {
@@ -1418,6 +1438,12 @@
       "id": "products_heading",
       "label": "Products heading",
       "default": "Tisso vison in the wild"
+    },
+    {
+      "type": "font_picker",
+      "id": "products_heading_font",
+      "label": "Products heading font",
+      "default": "lustria_n4"
     },
     {
       "type": "header",
