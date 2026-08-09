@@ -20,6 +20,15 @@ import { CartLinesUpdateEvent } from '@shopify/events';
 /** How long the "Added ✓" confirmation stays on the add-to-cart button (ms). */
 const ADDED_STATE_DURATION = 2000;
 
+/** Breathing room kept between the open size drawer and the viewport edge (px). */
+const VIEWPORT_MARGIN = 16;
+
+/** Smallest usable size drawer; below this it opens upward instead (px). */
+const MIN_MENU_HEIGHT = 160;
+
+/** Tallest the size drawer gets, matching its CSS max-height of 16rem (px). */
+const MAX_MENU_HEIGHT = 256;
+
 /**
  * A single purchasable variant, as serialised by the section's Liquid.
  *
@@ -345,6 +354,18 @@ class GiftGuideComponent extends Component {
 
     trigger.setAttribute('aria-expanded', 'true');
     list.hidden = false;
+
+    // Fit the drawer to the space actually available, and open upward when
+    // there is more room above. Without this the last option can sit below the
+    // viewport, unreachable, because the list escapes the popup's bounds.
+    const { top, bottom } = trigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - bottom - VIEWPORT_MARGIN;
+    const spaceAbove = top - VIEWPORT_MARGIN;
+    const openUpward = spaceBelow < MIN_MENU_HEIGHT && spaceAbove > spaceBelow;
+
+    list.classList.toggle('gift-guide__size-list--up', openUpward);
+    const available = Math.floor(openUpward ? spaceAbove : spaceBelow);
+    list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, Math.max(MIN_MENU_HEIGHT, available))}px`;
 
     const options = this.#sizeOptions(index);
     const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
