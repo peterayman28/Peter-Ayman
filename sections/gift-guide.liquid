@@ -704,13 +704,6 @@
     position: relative;
     max-width: 2373px;
     margin-inline: auto;
-    /* Height locked to the reference's proportion. Stacked at full width the
-       two frames come to 0.73 of the width, so the lower part of the bottom
-       frame is cropped — which is what the reference does too, hence the
-       objects clipped along its bottom edge. Without this the hero grows to
-       ~1400px tall on a wide monitor and swallows the viewport. */
-    aspect-ratio: 2373 / 1258;
-    overflow: hidden;
   }
 
   .gift-guide__hero-art {
@@ -727,19 +720,18 @@
     width: 100%;
   }
 
-  /* Full width, like the top frame. At 62% and right-aligned it could not reach
-     the bottom-left, leaving a white void there on wide screens. The hero's
-     aspect-ratio crops its lower portion. */
+  /* Right-hand side only, so the left stays clear for the copy. Narrowing it
+     also shortens the hero, bringing its proportions close to the reference. */
   .gift-guide__hero-frame--bottom {
-    width: 100%;
+    width: 62%;
+    margin-inline-start: auto;
   }
 
   /* Overlaid on the illustration rather than beside it. `top` is a percentage
      of the hero's height, so the copy holds its position as the art scales. */
   .gift-guide__hero-copy {
     position: absolute;
-    /* Just below the seam between the two frames, matching the reference. */
-    top: 55%;
+    top: 52%;
     /* Upper bound raised so the inset stays proportional on wide screens; at
        6rem it collapsed to 4% of the hero and the copy hugged the edge. */
     inset-inline-start: clamp(1rem, 8%, 12rem);
