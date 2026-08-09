@@ -296,12 +296,67 @@
                     {%- endcomment -%}
                     <div class="gift-guide__colors">
                       {%- for option_value in color_option.values -%}
+                        {%- liquid
+                          # Colour chip. Prefer the merchant's configured swatch;
+                          # otherwise map the option value's own name, falling
+                          # back to a neutral grey so the CSS is always valid.
+                          assign color_key = option_value.name | downcase | strip
+                          assign bar_color = '#cccccc'
+
+                          case color_key
+                            when 'black'
+                              assign bar_color = '#000000'
+                            when 'white'
+                              assign bar_color = '#ffffff'
+                            when 'grey', 'gray', 'charcoal'
+                              assign bar_color = '#808080'
+                            when 'silver'
+                              assign bar_color = '#c0c0c0'
+                            when 'blue'
+                              assign bar_color = '#1d4ed8'
+                            when 'navy'
+                              assign bar_color = '#1e3a5f'
+                            when 'teal'
+                              assign bar_color = '#0d9488'
+                            when 'red'
+                              assign bar_color = '#dc2626'
+                            when 'burgundy', 'maroon'
+                              assign bar_color = '#7f1d1d'
+                            when 'pink'
+                              assign bar_color = '#ec4899'
+                            when 'orange'
+                              assign bar_color = '#f97316'
+                            when 'yellow'
+                              assign bar_color = '#facc15'
+                            when 'gold'
+                              assign bar_color = '#d4af37'
+                            when 'green'
+                              assign bar_color = '#16a34a'
+                            when 'olive'
+                              assign bar_color = '#556b2f'
+                            when 'purple'
+                              assign bar_color = '#7c3aed'
+                            when 'brown'
+                              assign bar_color = '#92400e'
+                            when 'tan', 'khaki'
+                              assign bar_color = '#c3b091'
+                            when 'beige'
+                              assign bar_color = '#e8dcc8'
+                            when 'cream', 'ivory'
+                              assign bar_color = '#fdf6e3'
+                          endcase
+
+                          if option_value.swatch.color
+                            assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
+                          endif
+                        -%}
                         <button
                           type="button"
                           class="gift-guide__color"
                           data-gift-guide-swatch
                           data-value="{{ option_value.name | escape }}"
                           aria-pressed="false"
+                          style="--gg-color-bar: {{ bar_color }};"
                           on:click="/selectColor?index={{ rendered_index }}"
                         >
                           {{ option_value.name }}
@@ -924,7 +979,9 @@
     border-left: 0;
   }
 
-  /* Selecting fills the button left-to-right, matching the hero buttons. */
+  /* Selecting fills the button. The origin is set per click in gift-guide.js so
+     the fill travels in the direction of the move, left-to-right or
+     right-to-left; it defaults to `left` if JS has not set it. */
   .gift-guide__color::before {
     content: '';
     position: absolute;
@@ -932,8 +989,13 @@
     z-index: -1;
     background-color: var(--gg-ink);
     transform: scaleX(0);
-    transform-origin: left center;
+    transform-origin: var(--gg-fill-origin, left) center;
     transition: transform 0.3s ease;
+  }
+
+  /* First selection: nothing to travel from, so it applies with no slide. */
+  .gift-guide__color[data-instant]::before {
+    transition: none;
   }
 
   .gift-guide__color[aria-pressed='true'] {
@@ -942,6 +1004,18 @@
 
   .gift-guide__color[aria-pressed='true']::before {
     transform: scaleX(1);
+  }
+
+  /* Colour chip: a small rectangle on the left edge, the full height of the
+     button. The inset hairline keeps pale colours (white, cream) visible. */
+  .gift-guide__color::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 6px;
+    background-color: var(--gg-color-bar, transparent);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 15%);
   }
 
 
@@ -990,7 +1064,11 @@
     /* Overlap the trigger's border so the two read as one control. */
     top: calc(100% - 1px);
     z-index: 2;
-    /* No max-height: every size must be fully visible, never clipped. */
+    /* Scrolls within itself rather than growing the popup. Sized to show five
+       rows in full, so a typical XS–XL run never needs to scroll at all. */
+    max-height: 12rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     margin: 0;
     padding: 0;
     border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
@@ -1003,48 +1081,29 @@
   }
 
   .gift-guide__size-option {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
     padding: 0.6rem 0.75rem;
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
     font-size: 0.8rem;
     cursor: pointer;
-    transition: color 0.25s ease;
-  }
-
-  /* Same left-to-right fill as the colour swatches. */
-  .gift-guide__size-option::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background-color: var(--gg-ink);
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform 0.25s ease;
+    /* Slow, so the white → grey → black ramp is legible. Interpolating
+       background-color between the two passes through the greys on its own. */
+    transition: background-color 0.5s ease, color 0.5s ease;
   }
 
   .gift-guide__size-option:hover,
   .gift-guide__size-option:focus,
-  .gift-guide__size-option:focus-visible {
+  .gift-guide__size-option:focus-visible,
+  .gift-guide__size-option[aria-selected='true'] {
+    background-color: var(--gg-ink);
     color: var(--gg-paper);
     outline: none;
   }
 
-  .gift-guide__size-option:hover::before,
-  .gift-guide__size-option:focus::before,
-  .gift-guide__size-option:focus-visible::before {
-    transform: scaleX(1);
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .gift-guide__size-option::before {
+    .gift-guide__size-option {
       transition: none;
     }
-  }
-
-  .gift-guide__size-option[aria-selected='true'] {
-    font-weight: 600;
   }
 
   .gift-guide__form {
