@@ -20,6 +20,17 @@ import { CartLinesUpdateEvent } from '@shopify/events';
 /** How long the "Added ✓" confirmation stays on the add-to-cart button (ms). */
 const ADDED_STATE_DURATION = 2000;
 
+/** Breathing room kept between the open size drawer and the viewport edge (px). */
+const VIEWPORT_MARGIN = 16;
+
+/** Gap kept between the open size drawer and the popup's own edge (px). */
+const DRAWER_INSET = 8;
+
+/** Never shrink the drawer below roughly two rows (px). */
+const MIN_MENU_HEIGHT = 74;
+
+/** Tallest the size drawer gets, matching its CSS max-height of 16rem (px). */
+const MAX_MENU_HEIGHT = 256;
 
 /**
  * A single purchasable variant, as serialised by the section's Liquid.
@@ -347,10 +358,20 @@ class GiftGuideComponent extends Component {
     trigger.setAttribute('aria-expanded', 'true');
     list.hidden = false;
 
-    // No measuring needed: the drawer sits in normal flow, so the popup grows
-    // to fit it and CSS max-height caps it. Measuring against the popup clipped
-    // it to ~2.5 rows; measuring against the viewport let it escape the popup's
-    // border. Neither problem exists once it is in flow.
+    // Always opens downward. Fit it to the room below the trigger, measured
+    // against the popup's own box rather than the viewport, so the drawer stays
+    // inside the card; anything that does not fit is reached by scrolling it.
+    const triggerRect = trigger.getBoundingClientRect();
+    const popup = this.#quickViews[index]?.getBoundingClientRect();
+
+    const floor = Math.min(popup?.bottom ?? Infinity, window.innerHeight - VIEWPORT_MARGIN);
+
+    // The minimum can exceed the room available only if the card is
+    // pathologically short, where an unusably thin drawer would be worse.
+    const available = Math.max(MIN_MENU_HEIGHT, Math.floor(floor - triggerRect.bottom - DRAWER_INSET));
+
+    list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, available)}px`;
+
     const options = this.#sizeOptions(index);
     const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
     (selected ?? options[0])?.focus();
