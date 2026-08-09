@@ -26,8 +26,8 @@ const VIEWPORT_MARGIN = 16;
 /** Gap kept between the open size drawer and the popup's own edge (px). */
 const DRAWER_INSET = 8;
 
-/** Never shrink the drawer below roughly two rows (px). */
-const MIN_MENU_HEIGHT = 74;
+/** Never shrink the drawer below a full five-size run, ~37px per row (px). */
+const MIN_MENU_HEIGHT = 190;
 
 /** Tallest the size drawer gets, matching its CSS max-height of 16rem (px). */
 const MAX_MENU_HEIGHT = 256;
@@ -358,16 +358,15 @@ class GiftGuideComponent extends Component {
     trigger.setAttribute('aria-expanded', 'true');
     list.hidden = false;
 
-    // Always opens downward. Fit it to the room below the trigger, measured
-    // against the popup's own box rather than the viewport, so the drawer stays
-    // inside the card; anything that does not fit is reached by scrolling it.
+    // Always opens downward, measured against the viewport rather than the
+    // popup's box. Bounding it to the card left only ~95px below the trigger —
+    // about two and a half rows — so a five-size run always looked cut off. The
+    // popup is overflow: visible, so the drawer can extend past its edge.
     const triggerRect = trigger.getBoundingClientRect();
-    const popup = this.#quickViews[index]?.getBoundingClientRect();
+    const floor = window.innerHeight - VIEWPORT_MARGIN;
 
-    const floor = Math.min(popup?.bottom ?? Infinity, window.innerHeight - VIEWPORT_MARGIN);
-
-    // The minimum can exceed the room available only if the card is
-    // pathologically short, where an unusably thin drawer would be worse.
+    // The minimum can exceed the room available only on a very short viewport,
+    // where a drawer too small to read would be the worse outcome.
     const available = Math.max(MIN_MENU_HEIGHT, Math.floor(floor - triggerRect.bottom - DRAWER_INSET));
 
     list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, available)}px`;
