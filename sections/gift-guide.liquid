@@ -303,48 +303,53 @@
                           assign color_key = option_value.name | downcase | strip
                           assign bar_color = '#cccccc'
 
-                          case color_key
-                            when 'black'
-                              assign bar_color = '#000000'
-                            when 'white'
-                              assign bar_color = '#ffffff'
-                            when 'grey', 'gray', 'charcoal'
-                              assign bar_color = '#808080'
-                            when 'silver'
-                              assign bar_color = '#c0c0c0'
-                            when 'blue'
-                              assign bar_color = '#1d4ed8'
-                            when 'navy'
-                              assign bar_color = '#1e3a5f'
-                            when 'teal'
-                              assign bar_color = '#0d9488'
-                            when 'red'
-                              assign bar_color = '#dc2626'
-                            when 'burgundy', 'maroon'
-                              assign bar_color = '#7f1d1d'
-                            when 'pink'
-                              assign bar_color = '#ec4899'
-                            when 'orange'
-                              assign bar_color = '#f97316'
-                            when 'yellow'
-                              assign bar_color = '#facc15'
-                            when 'gold'
-                              assign bar_color = '#d4af37'
-                            when 'green'
-                              assign bar_color = '#16a34a'
-                            when 'olive'
-                              assign bar_color = '#556b2f'
-                            when 'purple'
-                              assign bar_color = '#7c3aed'
-                            when 'brown'
-                              assign bar_color = '#92400e'
-                            when 'tan', 'khaki'
-                              assign bar_color = '#c3b091'
-                            when 'beige'
-                              assign bar_color = '#e8dcc8'
-                            when 'cream', 'ivory'
-                              assign bar_color = '#fdf6e3'
-                          endcase
+                          # Substring matching, not exact, so real-world values
+                          # like "Light Grey", "Dark Red" or "Off White" resolve.
+                          # Ordered specific-first: "Navy Blue" must land on navy
+                          # before it matches blue, "Olive Green" before green.
+                          if color_key contains 'charcoal'
+                            assign bar_color = '#36454f'
+                          elsif color_key contains 'burgundy' or color_key contains 'maroon' or color_key contains 'wine'
+                            assign bar_color = '#7f1d1d'
+                          elsif color_key contains 'navy'
+                            assign bar_color = '#1e3a5f'
+                          elsif color_key contains 'teal'
+                            assign bar_color = '#0d9488'
+                          elsif color_key contains 'olive'
+                            assign bar_color = '#556b2f'
+                          elsif color_key contains 'khaki' or color_key contains 'tan'
+                            assign bar_color = '#c3b091'
+                          elsif color_key contains 'beige'
+                            assign bar_color = '#e8dcc8'
+                          elsif color_key contains 'cream' or color_key contains 'ivory'
+                            assign bar_color = '#fdf6e3'
+                          elsif color_key contains 'silver'
+                            assign bar_color = '#c0c0c0'
+                          elsif color_key contains 'gold'
+                            assign bar_color = '#d4af37'
+                          elsif color_key contains 'grey' or color_key contains 'gray'
+                            assign bar_color = '#808080'
+                          elsif color_key contains 'black'
+                            assign bar_color = '#000000'
+                          elsif color_key contains 'white'
+                            assign bar_color = '#ffffff'
+                          elsif color_key contains 'blue'
+                            assign bar_color = '#1d4ed8'
+                          elsif color_key contains 'red'
+                            assign bar_color = '#dc2626'
+                          elsif color_key contains 'pink'
+                            assign bar_color = '#ec4899'
+                          elsif color_key contains 'orange'
+                            assign bar_color = '#f97316'
+                          elsif color_key contains 'yellow'
+                            assign bar_color = '#facc15'
+                          elsif color_key contains 'green'
+                            assign bar_color = '#16a34a'
+                          elsif color_key contains 'purple' or color_key contains 'violet'
+                            assign bar_color = '#7c3aed'
+                          elsif color_key contains 'brown'
+                            assign bar_color = '#92400e'
+                          endif
 
                           if option_value.swatch.color
                             assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
@@ -1064,9 +1069,10 @@
     /* Overlap the trigger's border so the two read as one control. */
     top: calc(100% - 1px);
     z-index: 2;
-    /* Scrolls within itself rather than growing the popup. Sized to show five
-       rows in full, so a typical XS–XL run never needs to scroll at all. */
-    max-height: 12rem;
+    /* Scrolls within itself rather than growing the popup. Roomy enough for a
+       full XS–XL run; gift-guide.js narrows this to the space actually
+       available so the list can never run off-screen. */
+    max-height: 16rem;
     overflow-y: auto;
     overscroll-behavior: contain;
     margin: 0;
@@ -1080,11 +1086,20 @@
     display: none;
   }
 
+  /* Opens upward when there is not enough room below the trigger. */
+  .gift-guide__size-list--up {
+    top: auto;
+    bottom: calc(100% - 1px);
+  }
+
   .gift-guide__size-option {
     padding: 0.6rem 0.75rem;
     background-color: var(--gg-paper);
     color: var(--gg-ink);
     font-size: 0.8rem;
+    /* Explicit, so row height does not swing with the merchant's paragraph
+       line-height setting — a "loose" setting made five rows overflow. */
+    line-height: 1.4;
     cursor: pointer;
     /* Slow, so the white → grey → black ramp is legible. Interpolating
        background-color between the two passes through the greys on its own. */
