@@ -191,7 +191,57 @@ class GiftGuideComponent extends Component {
       option.setAttribute('aria-pressed', String(option === swatch));
     }
 
+    this.#clearError(index);
     this.#syncQuickView(index);
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {boolean} Whether this product has a Color option at all.
+   */
+  #hasColorOptions(index) {
+    return Boolean(this.#quickViews[index]?.querySelector('[data-gift-guide-swatch]'));
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {string | null} The chosen colour, or null while none is selected.
+   */
+  #selectedColor(index) {
+    const selected = this.#quickViews[index]?.querySelector('[data-gift-guide-swatch][aria-pressed="true"]');
+    return selected instanceof HTMLElement ? (selected.dataset.value ?? null) : null;
+  }
+
+  /**
+   * Reports the first option the shopper still has to choose. Nothing is
+   * preselected, so this drives the validation on add-to-cart.
+   *
+   * @param {number} index - The product's position in the grid.
+   * @returns {'color' | 'size' | null} The outstanding choice, if any.
+   */
+  #missingChoice(index) {
+    if (this.#hasColorOptions(index) && this.#selectedColor(index) === null) return 'color';
+    if (this.#hasSizeOptions(index) && this.#selectedSize(index) === null) return 'size';
+    return null;
+  }
+
+  /**
+   * Shows (or with an empty message, hides) the inline validation message.
+   *
+   * @param {number} index - The product's position in the grid.
+   * @param {string} message - The message to display.
+   */
+  #setError(index, message) {
+    const error = this.#quickViews[index]?.querySelector('[data-gift-guide-error]');
+    if (!(error instanceof HTMLElement)) return;
+
+    error.textContent = message;
+    error.hidden = !message;
+  }
+
+  /** @param {number} index - The product's position in the grid. */
+  #clearError(index) {
+    this.#setError(index, '');
   }
 
   /* ------------------------------------------------------------------ *
@@ -320,6 +370,7 @@ class GiftGuideComponent extends Component {
     if (value) value.textContent = chosen.dataset.value ?? '';
 
     this.#closeSizeMenu(index, { focusTrigger: true });
+    this.#clearError(index);
     this.#syncQuickView(index);
   }
 
@@ -420,9 +471,7 @@ class GiftGuideComponent extends Component {
     const dialog = this.#quickViews[index];
     if (!dialog) return null;
 
-    const selectedSwatch = dialog.querySelector('[data-gift-guide-swatch][aria-pressed="true"]');
-    const color = selectedSwatch instanceof HTMLElement ? (selectedSwatch.dataset.value ?? null) : null;
-
+    const color = this.#selectedColor(index);
     const size = this.#selectedSize(index);
 
     return (
@@ -452,21 +501,21 @@ class GiftGuideComponent extends Component {
 
     const label = button.querySelector('[data-gift-guide-add-label]');
     const purchasable = Boolean(variant?.available);
+    const awaitingChoice = this.#missingChoice(index) !== null;
 
-    // The dropdown opens on its placeholder rather than a preselected size, so
-    // nothing can be added until the shopper has actually chosen one.
-    const awaitingSize = this.#hasSizeOptions(index) && this.#selectedSize(index) === null;
-
-    button.disabled = !purchasable || awaitingSize;
+    // While a choice is outstanding the button stays enabled, so clicking it
+    // surfaces the validation message rather than doing nothing at all.
+    button.disabled = !awaitingChoice && !purchasable;
 
     // Leave an in-flight "Added ✓" confirmation alone; it restores itself.
     if (this.#addedTimeouts.has(index) || !label) return;
 
-    label.textContent = purchasable
-      ? (button.dataset.defaultLabel ?? '')
-      : variant
-        ? (button.dataset.soldOutLabel ?? '')
-        : (button.dataset.unavailableLabel ?? '');
+    label.textContent =
+      awaitingChoice || purchasable
+        ? (button.dataset.defaultLabel ?? '')
+        : variant
+          ? (button.dataset.soldOutLabel ?? '')
+          : (button.dataset.unavailableLabel ?? '');
   }
 
   /* ------------------------------------------------------------------ *
@@ -485,11 +534,23 @@ class GiftGuideComponent extends Component {
     event.preventDefault();
 
     const dialog = this.#quickViews[index];
-    const variant = this.#resolveVariant(index);
     const button = dialog?.querySelector('[data-gift-guide-add]');
+    if (!(button instanceof HTMLButtonElement)) return;
 
-    const awaitingSize = this.#hasSizeOptions(index) && this.#selectedSize(index) === null;
-    if (!variant?.available || awaitingSize || !(button instanceof HTMLButtonElement)) return;
+    // Nothing is preselected, so validate here rather than leaving the shopper
+    // with a button that silently does nothing.
+    const missing = this.#missingChoice(index);
+    if (missing) {
+      const message =
+        missing === 'color' ? button.dataset.colorRequiredLabel : button.dataset.sizeRequiredLabel;
+      this.#setError(index, message ?? '');
+      return;
+    }
+
+    this.#clearError(index);
+
+    const variant = this.#resolveVariant(index);
+    if (!variant?.available) return;
 
     const body = new FormData();
     body.set('id', String(variant.id));
