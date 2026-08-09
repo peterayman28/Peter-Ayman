@@ -12,18 +12,42 @@
     "gift_guide": {
       "type": "gift-guide",
       "settings": {
+        "show_header_bar": true,
         "brand_name": "TISSO VISON",
+        "header_tagline": "Find the ideal gift for your loved ones.",
         "heading": "The Gift Guide",
         "subtext": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
         "hero_button_label": "Shop Now",
-        "hero_button_link": "shopify:\/\/collections\/all",
+        "hero_button_link": "shopify://collections/all",
         "choose_gift_label": "Choose Gift",
-        "choose_gift_link": "shopify:\/\/collections\/all",
-        "accent_color": "#FFF544",
+        "choose_gift_link": "shopify://collections/all",
+        "accent_color": "#fff544",
+        "size_placeholder": "Choose your size",
         "banner_text": "Sustainable, ethically made clothes in sizes XXS to 6XL",
-        "products_heading": "Tisso vison in the wild"
+        "products_heading": "Tisso vison in the wild",
+        "products_heading_font": "sans_serif_n4",
+        "product_1": "",
+        "product_1_x": 50,
+        "product_1_y": 63,
+        "product_2": "",
+        "product_2_x": 85,
+        "product_2_y": 55,
+        "product_3": "",
+        "product_3_x": 50,
+        "product_3_y": 50,
+        "product_4": "",
+        "product_4_x": 45,
+        "product_4_y": 50,
+        "product_5": "",
+        "product_5_x": 50,
+        "product_5_y": 50,
+        "product_6": "",
+        "product_6_x": 50,
+        "product_6_y": 50
       }
     }
   },
-  "order": ["gift_guide"]
+  "order": [
+    "gift_guide"
+  ]
 }
