@@ -760,10 +760,10 @@
     gap: 1.25rem;
     min-width: 0;
     /* Percentages here resolve against this column, which is 38% of the hero:
-       16% start and 8% end work out as 6% and 3% of the hero, leaving the text
-       29% of it — the same share as the reference. */
+       10% start and 8% end work out as ~3.8% and ~3% of the hero. The start
+       value sets how far in from the edge the copy sits. */
     padding-block: clamp(1rem, 2vw, 3rem);
-    padding-inline: clamp(1rem, 16%, 12rem) clamp(0.5rem, 8%, 4rem);
+    padding-inline: clamp(1rem, 10%, 12rem) clamp(0.5rem, 8%, 4rem);
     text-align: left;
   }
 
