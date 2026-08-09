@@ -1,0 +1,1667 @@
+{% comment %}
+  Gift Guide
+  ----------
+  A hero (full-width illustration + copy + illustration), a thin banner strip,
+  and a 3 x 2 product grid with a two-stage quick view.
+
+  Liquid owns structure and data; behaviour lives in assets/gift-guide.js and
+  styles in the stylesheet block at the foot of this file.
+
+  Products are chosen in the theme editor. When a picker is left empty the
+  section falls back to the handle listed in `fallback_handles` below, so the
+  grid is populated out of the box.
+{% endcomment %}
+
+<script
+  src="{{ 'gift-guide.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{%- liquid
+  assign fallback_handles = 'black-leather-bag,blue-silk-tuxedo,chequered-red-shirt,classic-leather-jacket,classic-varsity-top,zipped-jacket' | split: ','
+  assign rendered_index = 0
+  assign products_font = section.settings.products_heading_font
+-%}
+
+{%- comment -%}
+  Emits the @font-face for the products heading. Naming a family in CSS alone
+  would not load it — Shopify serves the file via font_face.
+{%- endcomment -%}
+{% style %}
+  {{ products_font | font_face: font_display: 'swap' }}
+{% endstyle %}
+
+<gift-guide-component
+  class="gift-guide"
+  id="GiftGuide-{{ section.id }}"
+  {%- comment -%}
+    The arrow asset is passed in as a custom property because a stylesheet block
+    cannot contain Liquid, and it is applied as a mask rather than an <img> so
+    it takes its colour from the button text and inverts on hover.
+  {%- endcomment -%}
+  style="
+    --gg-accent: {{ section.settings.accent_color | default: '#FFF544' }};
+    --gg-arrow: url('{{ 'arrow.svg' | asset_url }}');
+    --gg-products-font: {{ products_font.family }}, {{ products_font.fallback_families }};
+    --gg-products-font-style: {{ products_font.style }};
+    --gg-products-font-weight: {{ products_font.weight }};
+  "
+>
+  {%- comment -%}
+    ---------- Top bar ----------
+    Brand, tagline and the Choose Gift button on one white row above the hero.
+    Optional, so it can be turned off if the theme header already covers this.
+  {%- endcomment -%}
+  {%- if section.settings.show_header_bar -%}
+    <div class="gift-guide__topbar">
+      <div class="gift-guide__topbar-brand">
+        {%- if settings.logo != blank -%}
+          {{
+            settings.logo
+            | image_url: width: 300
+            | image_tag: widths: '150,300', sizes: '150px', alt: shop.name, class: 'gift-guide__topbar-logo'
+          }}
+        {%- else -%}
+          {{ section.settings.brand_name | default: shop.name }}
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.header_tagline != blank -%}
+        <p class="gift-guide__topbar-tagline">{{ section.settings.header_tagline }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.choose_gift_label != blank -%}
+        <a
+          class="gift-guide__btn gift-guide__btn--accent gift-guide__choose-gift"
+          {% if section.settings.choose_gift_link != blank %}
+            href="{{ section.settings.choose_gift_link }}"
+          {% else %}
+            role="link"
+            aria-disabled="true"
+          {% endif %}
+        >
+          {{ section.settings.choose_gift_label }}
+          <span class="gift-guide__arrow" aria-hidden="true"></span>
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%}
+    ---------- Hero ----------
+    Row 1 is the full-width illustration. Row 2 is a real two-column grid —
+    copy on the left, illustration on the right — so neither can overlap the
+    other at any width. Nothing here is absolutely positioned.
+  {%- endcomment -%}
+  <div class="gift-guide__hero">
+    <div class="gift-guide__hero-top">
+      <img
+        src="{{ 'hero-frame-top.svg' | asset_url }}"
+        alt=""
+        width="3840"
+        height="1065"
+        class="gift-guide__hero-frame"
+        loading="eager"
+        fetchpriority="high"
+      >
+    </div>
+
+    <div class="gift-guide__hero-row">
+      <div class="gift-guide__hero-copy">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subtext != blank -%}
+        <div class="gift-guide__subtext rte">{{ section.settings.subtext }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.hero_button_label != blank -%}
+        <a
+          class="gift-guide__btn gift-guide__btn--primary gift-guide__hero-button"
+          {% if section.settings.hero_button_link != blank %}
+            href="{{ section.settings.hero_button_link }}"
+          {% else %}
+            role="link"
+            aria-disabled="true"
+          {% endif %}
+        >
+          {{ section.settings.hero_button_label }}
+          <span class="gift-guide__arrow" aria-hidden="true"></span>
+        </a>
+        {%- endif -%}
+      </div>
+
+      <div class="gift-guide__hero-aside">
+        <img
+          src="{{ 'hero-frame-bottom.svg' | asset_url }}"
+          alt=""
+          width="2374"
+          height="1072"
+          class="gift-guide__hero-frame"
+          loading="eager"
+        >
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} ---------- Banner strip ---------- {%- endcomment -%}
+  {%- if section.settings.banner_text != blank -%}
+    <div class="gift-guide__banner">
+      <p class="gift-guide__banner-text">{{ section.settings.banner_text }}</p>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ---------- Product grid ---------- {%- endcomment -%}
+  <div class="gift-guide__products">
+    {%- if section.settings.products_heading != blank -%}
+      <h3 class="gift-guide__products-heading">{{ section.settings.products_heading }}</h3>
+    {%- endif -%}
+
+    <ul
+      class="gift-guide__grid"
+      role="list"
+    >
+    {%- for position in (1..6) -%}
+      {%- liquid
+        assign setting_key = 'product_' | append: position
+        assign gg_product = section.settings[setting_key]
+
+        # Fall back to the handle for this position when no product is picked.
+        if gg_product == blank
+          assign fallback_handle = fallback_handles[forloop.index0]
+          assign gg_product = all_products[fallback_handle]
+        endif
+      -%}
+
+      {%- if gg_product != blank -%}
+        {%- liquid
+          # Locate the Color and Size options by name, so the controls below
+          # work regardless of the order they are defined on the product.
+          assign color_index = -1
+          assign size_index = -1
+
+          for product_option in gg_product.options_with_values
+            assign option_name = product_option.name | downcase
+            if option_name == 'color' or option_name == 'colour'
+              assign color_index = forloop.index0
+            elsif option_name == 'size'
+              assign size_index = forloop.index0
+            endif
+          endfor
+
+          assign has_color = false
+          assign has_size = false
+          if color_index >= 0
+            assign has_color = true
+          endif
+          if size_index >= 0
+            assign has_size = true
+          endif
+
+          assign default_variant = gg_product.selected_or_first_available_variant
+
+          # Neither colour nor size starts selected. The shopper chooses both and
+          # add-to-cart validates on click; default_variant only supplies the
+          # opening price and the no-JS form fallback.
+          assign color_required_label = ''
+          assign size_required_label = ''
+
+          if has_color
+            assign color_option_name = gg_product.options_with_values[color_index].name | downcase
+            assign color_required_label = 'Please select a ' | append: color_option_name
+          endif
+
+          if has_size
+            assign size_option_name = gg_product.options_with_values[size_index].name | downcase
+            assign size_required_label = 'Please select a ' | append: size_option_name
+          endif
+        -%}
+
+        <li class="gift-guide__cell">
+          {%- comment -%}
+            The image is presentational; the small "+" button is the only
+            interactive trigger for the stage 1 preview.
+          {%- endcomment -%}
+          <div class="gift-guide__thumb">
+            {%- if gg_product.featured_image -%}
+              {{
+                gg_product.featured_image
+                | image_url: width: 900
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '300,450,600,900',
+                  sizes: '(min-width: 990px) 30vw, 90vw',
+                  alt: gg_product.title,
+                  class: 'gift-guide__thumb-image'
+              }}
+            {%- else -%}
+              {{ 'product-apparel-1' | placeholder_svg_tag: 'gift-guide__thumb-image' }}
+            {%- endif -%}
+
+            {%- comment -%}
+              Placed per product so the "+" can sit on the garment itself rather
+              than a fixed corner. Mirrors the theme's own hotspot settings.
+            {%- endcomment -%}
+            {%- liquid
+              assign x_key = 'product_' | append: position | append: '_x'
+              assign y_key = 'product_' | append: position | append: '_y'
+              assign hotspot_x = section.settings[x_key] | default: 50
+              assign hotspot_y = section.settings[y_key] | default: 50
+            -%}
+            <button
+              type="button"
+              class="gift-guide__quick-trigger"
+              data-gift-guide-trigger="{{ rendered_index }}"
+              aria-haspopup="dialog"
+              aria-label="{{ gg_product.title | escape }}"
+              style="left: {{ hotspot_x }}%; top: {{ hotspot_y }}%;"
+              on:click="/openPreview?index={{ rendered_index }}"
+            >
+              <span aria-hidden="true">+</span>
+            </button>
+          </div>
+
+          {%- comment -%} ---------- Stage 1: preview over the image ---------- {%- endcomment -%}
+          <div
+            class="gift-guide__preview"
+            ref="previews[]"
+            hidden
+          >
+            <button
+              type="button"
+              class="gift-guide__preview-card"
+              data-gift-guide-expand
+              on:click="/openQuickView?index={{ rendered_index }}"
+            >
+              {%- if gg_product.featured_image -%}
+                {{
+                  gg_product.featured_image
+                  | image_url: width: 200
+                  | image_tag: loading: 'lazy', widths: '100,200', sizes: '80px', alt: '', class: 'gift-guide__preview-image'
+                }}
+              {%- endif -%}
+              <span class="gift-guide__preview-body">
+                <span class="gift-guide__preview-title">{{ gg_product.title }}</span>
+                <span class="gift-guide__preview-price">{{ default_variant.price | money }}</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="gift-guide__preview-close"
+              aria-label="{{ 'actions.close' | t }}"
+              on:click="/closePreview?index={{ rendered_index }}"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          {%- comment -%} ---------- Stage 2: quick view dialog ---------- {%- endcomment -%}
+          <dialog
+            class="gift-guide__quickview"
+            ref="quickViews[]"
+            data-index="{{ rendered_index }}"
+            aria-label="{{ gg_product.title | escape }}"
+          >
+            <div class="gift-guide__quickview-inner">
+              <button
+                type="button"
+                class="gift-guide__quickview-close"
+                aria-label="{{ 'actions.close' | t }}"
+                on:click="/closeQuickView?index={{ rendered_index }}"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+
+              {%- comment -%}
+                Compact card: a 90px thumbnail on the left, with the title,
+                price and description stacked beside it.
+              {%- endcomment -%}
+              <div class="gift-guide__quickview-header">
+                <div class="gift-guide__quickview-media">
+                  {%- comment -%}
+                    Cropped to a 3:4 portrait rather than sized by width alone.
+                    The display box is narrow but tall, so a landscape source
+                    scaled to 120px wide has far too few vertical pixels once
+                    object-fit: cover enlarges it to cover — which is what made
+                    the thumbnail look soft. 360x480 is 3x the display width.
+                  {%- endcomment -%}
+                  {%- if gg_product.featured_image -%}
+                    {{
+                      gg_product.featured_image
+                      | image_url: width: 360, height: 480, crop: 'center'
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '120,180,240,360',
+                        sizes: '120px',
+                        alt: gg_product.title,
+                        class: 'gift-guide__quickview-image'
+                    }}
+                  {%- endif -%}
+                </div>
+
+                <div class="gift-guide__quickview-summary">
+                  <h3 class="gift-guide__quickview-title">{{ gg_product.title }}</h3>
+
+                  <p
+                    class="gift-guide__quickview-price"
+                    data-gift-guide-price
+                  >
+                    {{- default_variant.price | money -}}
+                  </p>
+
+                  {%- if gg_product.description != blank -%}
+                    <div class="gift-guide__quickview-description rte">{{ gg_product.description }}</div>
+                  {%- endif -%}
+                </div>
+              </div>
+
+              <div class="gift-guide__quickview-details">
+
+                {%- comment -%} Colour swatches, from the "Color" option {%- endcomment -%}
+                {%- if has_color -%}
+                  {%- assign color_option = gg_product.options_with_values[color_index] -%}
+                  <fieldset class="gift-guide__option">
+                    <legend class="gift-guide__option-label">{{ color_option.name }}</legend>
+                    {%- comment -%}
+                      Segmented control: one evenly-sized button per colour,
+                      labelled with the colour name rather than a swatch chip.
+                    {%- endcomment -%}
+                    <div class="gift-guide__colors">
+                      {%- for option_value in color_option.values -%}
+                        {%- liquid
+                          # Colour chip. Prefer the merchant's configured swatch;
+                          # otherwise map the option value's own name, falling
+                          # back to a neutral grey so the CSS is always valid.
+                          assign color_key = option_value.name | downcase | strip
+                          assign bar_color = '#cccccc'
+
+                          # Substring matching, not exact, so real-world values
+                          # like "Light Grey", "Dark Red" or "Off White" resolve.
+                          # Ordered specific-first: "Navy Blue" must land on navy
+                          # before it matches blue, "Olive Green" before green.
+                          if color_key contains 'charcoal'
+                            assign bar_color = '#36454f'
+                          elsif color_key contains 'burgundy' or color_key contains 'maroon' or color_key contains 'wine'
+                            assign bar_color = '#7f1d1d'
+                          elsif color_key contains 'navy'
+                            assign bar_color = '#1e3a5f'
+                          elsif color_key contains 'teal'
+                            assign bar_color = '#0d9488'
+                          elsif color_key contains 'olive'
+                            assign bar_color = '#556b2f'
+                          elsif color_key contains 'khaki' or color_key contains 'tan'
+                            assign bar_color = '#c3b091'
+                          elsif color_key contains 'beige'
+                            assign bar_color = '#e8dcc8'
+                          elsif color_key contains 'cream' or color_key contains 'ivory'
+                            assign bar_color = '#fdf6e3'
+                          elsif color_key contains 'silver'
+                            assign bar_color = '#c0c0c0'
+                          elsif color_key contains 'gold'
+                            assign bar_color = '#d4af37'
+                          elsif color_key contains 'grey' or color_key contains 'gray'
+                            assign bar_color = '#808080'
+                          elsif color_key contains 'black'
+                            assign bar_color = '#000000'
+                          elsif color_key contains 'white'
+                            assign bar_color = '#ffffff'
+                          elsif color_key contains 'blue'
+                            assign bar_color = '#1d4ed8'
+                          elsif color_key contains 'red'
+                            assign bar_color = '#dc2626'
+                          elsif color_key contains 'pink'
+                            assign bar_color = '#ec4899'
+                          elsif color_key contains 'orange'
+                            assign bar_color = '#f97316'
+                          elsif color_key contains 'yellow'
+                            assign bar_color = '#facc15'
+                          elsif color_key contains 'green'
+                            assign bar_color = '#16a34a'
+                          elsif color_key contains 'purple' or color_key contains 'violet'
+                            assign bar_color = '#7c3aed'
+                          elsif color_key contains 'brown'
+                            assign bar_color = '#92400e'
+                          endif
+
+                          if option_value.swatch.color
+                            assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
+                          endif
+                        -%}
+                        <button
+                          type="button"
+                          class="gift-guide__color"
+                          data-gift-guide-swatch
+                          data-value="{{ option_value.name | escape }}"
+                          aria-pressed="false"
+                          style="--gg-color-bar: {{ bar_color }};"
+                          on:click="/selectColor?index={{ rendered_index }}"
+                        >
+                          {{ option_value.name }}
+                        </button>
+                      {%- endfor -%}
+                    </div>
+                  </fieldset>
+                {%- endif -%}
+
+                {%- comment -%} Size dropdown, from the "Size" option {%- endcomment -%}
+                {%- if has_size -%}
+                  {%- liquid
+                    assign size_option = gg_product.options_with_values[size_index]
+                    assign size_list_id = 'GiftGuideSizeList-' | append: section.id | append: '-' | append: rendered_index
+                    assign size_label_id = 'GiftGuideSizeLabel-' | append: section.id | append: '-' | append: rendered_index
+                  -%}
+                  <div class="gift-guide__option">
+                    <span
+                      class="gift-guide__option-label"
+                      id="{{ size_label_id }}"
+                    >
+                      {{ size_option.name }}
+                    </span>
+
+                    {%- comment -%}
+                      Custom listbox rather than a native <select>. Keydown is
+                      handled on the wrapper so it covers both the trigger and
+                      the options; see sizeKeydown() in gift-guide.js.
+                    {%- endcomment -%}
+                    <div
+                      class="gift-guide__size"
+                      data-gift-guide-size
+                      on:keydown="/sizeKeydown?index={{ rendered_index }}"
+                    >
+                      <button
+                        type="button"
+                        class="gift-guide__size-trigger"
+                        data-gift-guide-size-trigger
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-controls="{{ size_list_id }}"
+                        aria-labelledby="{{ size_label_id }}"
+                        on:click="/toggleSizeMenu?index={{ rendered_index }}"
+                      >
+                        <span
+                          class="gift-guide__size-label"
+                          data-gift-guide-size-value
+                        >
+                          {{- section.settings.size_placeholder -}}
+                        </span>
+                        <span class="gift-guide__size-caret">
+                          <svg
+                            aria-hidden="true"
+                            focusable="false"
+                            class="icon icon-caret gift-guide__size-chevron"
+                            viewBox="0 0 10 6"
+                          >
+                            {%- render 'icon', icon: 'caret' -%}
+                          </svg>
+                        </span>
+                      </button>
+
+                      <ul
+                        class="gift-guide__size-list"
+                        id="{{ size_list_id }}"
+                        role="listbox"
+                        aria-labelledby="{{ size_label_id }}"
+                        hidden
+                      >
+                        {%- for option_value in size_option.values -%}
+                          <li
+                            class="gift-guide__size-option"
+                            role="option"
+                            tabindex="-1"
+                            aria-selected="false"
+                            data-gift-guide-size-option
+                            data-value="{{ option_value.name | escape }}"
+                            on:click="/selectSize?index={{ rendered_index }}"
+                          >
+                            {{ option_value.name }}
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    </div>
+                  </div>
+                {%- endif -%}
+
+                {%- comment -%}
+                  A real form action means the button still works if the module
+                  fails to load; gift-guide.js intercepts the submit for AJAX.
+                {%- endcomment -%}
+                <form
+                  action="{{ routes.cart_add_url }}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="gift-guide__form"
+                  on:submit="/addToCart?index={{ rendered_index }}"
+                >
+                  <input
+                    type="hidden"
+                    name="id"
+                    value="{{ default_variant.id }}"
+                  >
+                  <input
+                    type="hidden"
+                    name="quantity"
+                    value="1"
+                  >
+
+                  {%- comment -%}
+                    Validation message for choices the shopper has not made yet.
+                  {%- endcomment -%}
+                  <p
+                    class="gift-guide__error"
+                    data-gift-guide-error
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                  ></p>
+
+                  <button
+                    type="submit"
+                    class="gift-guide__btn gift-guide__btn--primary gift-guide__add"
+                    data-gift-guide-add
+                    data-color-required-label="{{ color_required_label | escape }}"
+                    data-size-required-label="{{ size_required_label | escape }}"
+                    data-default-label="{{ 'products.product.add_to_cart' | t }}"
+                    data-added-label="{{ 'actions.added' | t }} &check;"
+                    data-sold-out-label="{{ 'products.product.sold_out' | t }}"
+                    data-unavailable-label="{{ 'products.product.unavailable' | t }}"
+                    data-error-label="{{ 'products.product.add_to_cart_error' | t }}"
+                    {% unless default_variant.available %}
+                      disabled
+                    {% endunless %}
+                  >
+                    <span data-gift-guide-add-label>
+                      {%- if default_variant.available -%}
+                        {{ 'products.product.add_to_cart' | t }}
+                      {%- else -%}
+                        {{ 'products.product.sold_out' | t }}
+                      {%- endif -%}
+                    </span>
+                    <span class="gift-guide__arrow" aria-hidden="true"></span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {%- comment -%}
+              Variant data for the quick view. Options the product does not have
+              are emitted as null, and ignored when matching.
+            {%- endcomment -%}
+            <script type="application/json" data-gift-guide-variants>
+              [
+                {%- for variant in gg_product.variants -%}
+                  {
+                    "id": {{ variant.id }},
+                    "color": {% if has_color %}{{ variant.options[color_index] | json }}{% else %}null{% endif %},
+                    "size": {% if has_size %}{{ variant.options[size_index] | json }}{% else %}null{% endif %},
+                    "available": {{ variant.available }},
+                    "price": {{ variant.price | money | strip_html | json }}
+                  }{% unless forloop.last %},{% endunless %}
+                {%- endfor -%}
+              ]
+            </script>
+          </dialog>
+        </li>
+
+        {%- assign rendered_index = rendered_index | plus: 1 -%}
+      {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</gift-guide-component>
+
+{% stylesheet %}
+  /* ------------------------------------------------------------------ *
+   * Gift Guide
+   * Desktop-first by design: a mobile/tablet pass is deliberately out of
+   * scope for now, so there are no breakpoints below.
+   * ------------------------------------------------------------------ */
+
+  .gift-guide {
+    --gg-ink: var(--color-foreground);
+    --gg-paper: var(--color-background);
+    --gg-gutter: 2.5rem;
+
+    display: block;
+    color: var(--gg-ink);
+  }
+
+  /* ---------- Buttons with a left-to-right sliding fill ---------- */
+
+  .gift-guide__btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Wider separation between the label and the arrow. */
+    gap: 1.5em;
+    /* Keeps the label and arrow on one line — "Choose Gift" was breaking in
+       the top bar when the column got tight. */
+    white-space: nowrap;
+    padding: 1.15em 2.5em;
+    border: 0;
+    border-radius: 0;
+    font-family: var(--font-body--family);
+    /* Shared by Shop Now, Choose Gift and Add to Cart. Ceiling lowered to 1rem
+       so buttons stop growing at a normal desktop size when zoomed out. */
+    font-size: clamp(0.875rem, 0.95vw, 1rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  /* assets/arrow.svg, 64x26. Drawn as a mask filled with currentColor so it
+     follows the button's text colour through the hover fill. */
+  .gift-guide__arrow {
+    flex: none;
+    display: inline-block;
+    width: 2.4em;
+    height: 1em;
+    background-color: currentColor;
+    -webkit-mask-image: var(--gg-arrow);
+    mask-image: var(--gg-arrow);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .gift-guide__btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--gg-btn-fill);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.3s ease;
+  }
+
+  .gift-guide__btn:hover::before,
+  .gift-guide__btn:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  .gift-guide__btn:hover,
+  .gift-guide__btn:focus-visible {
+    color: var(--gg-btn-hover-color);
+  }
+
+  /* Default: solid ink, fills with the accent colour. */
+  .gift-guide__btn--primary {
+    background-color: var(--gg-ink);
+    color: var(--gg-paper);
+    --gg-btn-fill: var(--gg-accent, #fff544);
+    --gg-btn-hover-color: var(--gg-ink);
+  }
+
+  /* Accent: yellow by default, fills with ink. */
+  .gift-guide__btn--accent {
+    background-color: var(--gg-accent, #fff544);
+    color: var(--gg-ink);
+    --gg-btn-fill: var(--gg-ink);
+    --gg-btn-hover-color: var(--gg-paper);
+  }
+
+  /* Dimming is for genuinely unavailable form controls only — the sold-out
+     Add to Cart button. A link with no URL configured yet must still render at
+     its true colour, or the accent reads as a washed-out yellow. */
+  .gift-guide__btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .gift-guide__btn[aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  .gift-guide__btn:disabled::before {
+    transform: scaleX(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-guide__btn::before {
+      transition: none;
+    }
+  }
+
+  /* ---------- Top bar ---------- */
+
+  .gift-guide__topbar {
+    /* Side columns share the leftover space, so the tagline sits dead centre
+       regardless of how wide the brand or button happen to be. */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    /* Aligned to the store's content width so it does not stretch edge to edge
+       on a wide monitor. */
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
+    padding: 0.75rem clamp(1rem, 3%, 4rem);
+    background-color: var(--gg-paper);
+  }
+
+  .gift-guide__topbar-brand {
+    font-size: clamp(0.9rem, 1.1vw, 1.25rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .gift-guide__topbar-logo {
+    width: auto;
+    max-height: 28px;
+  }
+
+  .gift-guide__topbar-tagline {
+    margin: 0;
+    font-size: clamp(0.75rem, 0.9vw, 1.05rem);
+    text-align: center;
+  }
+
+  .gift-guide__choose-gift {
+    justify-self: end;
+  }
+
+  /* ---------- Hero ---------- */
+
+  /* Same content width as the top bar and product grid, so the hero shrinks
+     in step with the rest of the page instead of ballooning when zoomed out. */
+  .gift-guide__hero {
+    position: relative;
+    width: 100%;
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
+  }
+
+  .gift-guide__hero-top {
+    line-height: 0;
+  }
+
+  /* Scales down with whatever column holds it, never past its own width. */
+  .gift-guide__hero-frame {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Two real columns. minmax(0, 1fr) rather than a bare 1fr: the default
+     min-width:auto lets a grid item refuse to shrink below its content, which
+     is what pushes columns into each other as the window narrows. */
+  /* 38/62 split. 62% is not arbitrary: the bottom frame's canvas is 2374 wide
+     against the top frame's 3840, so at 2374/3840 = 62% of the hero it renders
+     its artwork at exactly the same scale as the full-width top frame. Any
+     padding or gap on this row would shrink that column and make the same
+     objects appear ~31% smaller across the seam, so the text column carries
+     its own padding instead. */
+  .gift-guide__hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
+    align-items: center;
+  }
+
+  .gift-guide__hero-aside {
+    /* Same reason as above — lets the illustration shrink with its column. */
+    min-width: 0;
+  }
+
+  /* Overlaid on the illustration rather than beside it. `top` is a percentage
+     of the hero's height, so the copy holds its position as the art scales. */
+  /* In flow inside its own grid column — nothing absolute, so it cannot
+     overlap the illustration beside it at any width. */
+  .gift-guide__hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    min-width: 0;
+    /* Percentages here resolve against this column, which is 38% of the hero:
+       10% start and 8% end work out as ~3.8% and ~3% of the hero. The start
+       value sets how far in from the edge the copy sits. */
+    padding-block: clamp(1rem, 2vw, 3rem);
+    padding-inline: clamp(1rem, 10%, 12rem) clamp(0.5rem, 8%, 4rem);
+    text-align: left;
+  }
+
+  .gift-guide__heading {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    /* The ceiling is what stops the heading outgrowing its column once the hero
+       caps out. At a 1400px hero the text column is ~406px and "The Gift Guide"
+       needs roughly 6.8x the font-size, so 3.25rem fills ~87% of it. Below
+       ~1445px viewport the 3.6vw term governs and this never engages. */
+    font-size: clamp(1.75rem, 3.6vw, 3.25rem);
+    line-height: 1.05;
+  }
+
+  .gift-guide__subtext {
+    /* Narrower than the heading above it, so the paragraph wraps sooner. */
+    max-width: 88%;
+    /* Ceiling kept near the theme's own body size (14px) rather than 1.6rem,
+       which read as oversized once the hero stopped growing. */
+    font-size: clamp(0.8rem, 1.1vw, 1.125rem);
+    line-height: 1.55;
+    color: var(--color-foreground-muted, var(--gg-ink));
+  }
+
+  .gift-guide__subtext > :first-child {
+    margin-block-start: 0;
+  }
+
+  .gift-guide__subtext > :last-child {
+    margin-block-end: 0;
+  }
+
+  .gift-guide__hero-button {
+    padding: 1.15em 2em;
+  }
+
+  /* ---------- Banner strip ---------- */
+
+  .gift-guide__banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 1.15rem;
+    padding-inline: var(--page-margin, 1rem);
+    background-color: #f5f5f5;
+    color: var(--gg-ink);
+  }
+
+  .gift-guide__banner-text {
+    margin: 0;
+    font-size: clamp(0.75rem, 0.85vw, 1.125rem);
+    letter-spacing: 0.14em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Product grid ---------- */
+
+  /* Holds the heading and the grid on the same content width, so the heading
+     lines up with the left edge of the first product. */
+  .gift-guide__products {
+    width: 100%;
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
+    padding: clamp(2rem, 4vw, 5rem) clamp(1rem, 3%, 4rem);
+  }
+
+  .gift-guide__products-heading {
+    margin: 0 0 clamp(1rem, 2vw, 2rem);
+    font-family: var(--gg-products-font, var(--font-heading--family));
+    font-style: var(--gg-products-font-style, normal);
+    /* 2.25rem is 36px, expressed in rem so it still honours a reader's
+       browser font-size setting. */
+    font-size: 2.25rem;
+    font-weight: var(--gg-products-font-weight, 400);
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .gift-guide__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gg-gutter);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gift-guide__cell {
+    position: relative;
+  }
+
+  /* Presentational wrapper — the positioning context for the "+" button. */
+  .gift-guide__thumb {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  .gift-guide__thumb-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  /* The only interactive part of a card. Hidden until the card is hovered, or
+     until it takes keyboard focus — without that second condition it would be
+     unreachable for anyone not using a mouse. */
+  .gift-guide__quick-trigger {
+    position: absolute;
+    /* left/top are set per product in the markup; the translate centres the
+       circle on that point, so the setting reads as "where the + sits". */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 18%);
+  }
+
+  .gift-guide__cell:hover .gift-guide__quick-trigger,
+  .gift-guide__quick-trigger:focus-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-guide__quick-trigger {
+      transition: none;
+    }
+  }
+
+  /* ---------- Stage 1: preview layered over the image ---------- */
+
+  .gift-guide__preview {
+    position: absolute;
+    inset-inline: 8%;
+    bottom: 8%;
+    z-index: 3;
+    display: flex;
+    align-items: flex-start;
+    background-color: var(--gg-paper);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 18%);
+  }
+
+  /* `hidden` must win over the flex display above. */
+  .gift-guide__preview[hidden] {
+    display: none;
+  }
+
+  .gift-guide__preview-card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .gift-guide__preview-image {
+    flex: none;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+  }
+
+  .gift-guide__preview-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .gift-guide__preview-title {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .gift-guide__preview-price {
+    font-size: 0.95rem;
+    color: var(--color-foreground-muted, var(--gg-ink));
+  }
+
+  .gift-guide__preview-close,
+  .gift-guide__quickview-close {
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  /* ---------- Stage 2: quick view dialog ---------- */
+
+  .gift-guide__quickview {
+    /* A compact card, not a full-width product panel. */
+    width: 320px;
+    max-width: 92vw;
+    max-height: 88vh;
+    /* The popup itself never scrolls — the size drawer handles its own. Stated
+       explicitly because some UA stylesheets default <dialog> to overflow:auto,
+       which would both add a scrollbar here and clip the open size drawer. */
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
+  }
+
+  .gift-guide__quickview::backdrop {
+    background-color: rgb(0 0 0 / 55%);
+  }
+
+  .gift-guide__quickview-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* Top clears the close button so it sits well above the image and title;
+       the deeper bottom keeps Add to Cart off the card's edge. */
+    padding: 2.75rem 1rem 1.75rem;
+  }
+
+  .gift-guide__quickview-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 1;
+  }
+
+  .gift-guide__quickview-header {
+    display: flex;
+    /* Stretch, so the image column ends level with the text beside it. */
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .gift-guide__quickview-media {
+    position: relative;
+    flex: none;
+    width: 120px;
+    /* No fixed height: the flex stretch above takes it from the title, price
+       and description beside it. The floor stops it collapsing to a sliver on
+       a product with no description. */
+    min-height: 110px;
+    overflow: hidden;
+  }
+
+  /* Absolutely positioned so it fills whatever height the stretch resolves to,
+     without depending on a percentage height against an indefinite parent.
+     Also overrides base.css:83, which resets every image to
+     `width: 100%; height: auto` with `max-width: 100%`. */
+  .gift-guide__quickview-media .gift-guide__quickview-image {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .gift-guide__quickview-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .gift-guide__quickview-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .gift-guide__quickview-title {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .gift-guide__quickview-price {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .gift-guide__quickview-description {
+    /* Flows as normal text — no fixed height and no scroll container, so the
+       card simply grows to fit the copy. */
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--color-foreground-muted, var(--gg-ink));
+  }
+
+  .gift-guide__quickview-description > :first-child {
+    margin-block-start: 0;
+  }
+
+  .gift-guide__quickview-description > :last-child {
+    margin-block-end: 0;
+  }
+
+  /* ---------- Variant controls ---------- */
+
+  .gift-guide__option {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .gift-guide__option-label {
+    display: block;
+    margin-block-end: 0.5rem;
+    padding: 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Colour options: a segmented control of evenly-sized, named buttons. */
+
+  .gift-guide__colors {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .gift-guide__color {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 0.6rem 0.5rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
+    font-family: inherit;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  /* Collapse the shared edge so the group reads as one control. */
+  .gift-guide__color + .gift-guide__color {
+    border-left: 0;
+  }
+
+  /* Selecting fills the button. The origin is set per click in gift-guide.js so
+     the fill travels in the direction of the move, left-to-right or
+     right-to-left; it defaults to `left` if JS has not set it. */
+  .gift-guide__color::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--gg-ink);
+    transform: scaleX(0);
+    transform-origin: var(--gg-fill-origin, left) center;
+    transition: transform 0.3s ease;
+  }
+
+  /* First selection: nothing to travel from, so it applies with no slide. */
+  .gift-guide__color[data-instant]::before {
+    transition: none;
+  }
+
+  .gift-guide__color[aria-pressed='true'] {
+    color: var(--gg-paper);
+  }
+
+  .gift-guide__color[aria-pressed='true']::before {
+    transform: scaleX(1);
+  }
+
+  /* Colour chip: a small rectangle on the left edge, the full height of the
+     button. The inset hairline keeps pale colours (white, cream) visible.
+
+     Sits at z-index -2, one layer below the fill at -1, so the black sweep
+     passes over the chip and covers it rather than the chip punching through.
+     Both stay negative, so the label still paints above them. */
+  .gift-guide__color::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    z-index: -2;
+    width: 6px;
+    background-color: var(--gg-color-bar, transparent);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 15%);
+  }
+
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-guide__color::before {
+      transition: none;
+    }
+  }
+
+  /* Size options: a custom listbox in place of a native <select>. */
+
+  .gift-guide__size {
+    position: relative;
+  }
+
+  .gift-guide__size-trigger {
+    display: flex;
+    /* Stretch so the caret's divider runs the full height of the control. */
+    align-items: stretch;
+    width: 100%;
+    padding: 0;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
+    font-family: inherit;
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .gift-guide__size-label {
+    flex: 1;
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Caret sits in its own cell with a divider, as in the reference. */
+  .gift-guide__size-caret {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.7rem;
+    border-left: 1px solid rgb(var(--color-foreground-rgb) / 25%);
+  }
+
+  .gift-guide__size-chevron {
+    flex: none;
+    width: 10px;
+    height: 6px;
+    transition: transform 0.2s ease;
+  }
+
+  .gift-guide__size-trigger[aria-expanded='true'] .gift-guide__size-chevron {
+    transform: rotate(180deg);
+  }
+
+  .gift-guide__size-list {
+    position: absolute;
+    inset-inline: 0;
+    /* Overlap the trigger's border so the two read as one control. */
+    top: calc(100% - 1px);
+    z-index: 2;
+    /* Scrolls within itself rather than growing the popup. Roomy enough for a
+       full XS–XL run; gift-guide.js narrows this to the space actually
+       available so the list can never run off-screen. */
+    max-height: 16rem;
+    /* Still scrolls — by wheel, trackpad, drag, or arrow keys moving focus —
+       but the scrollbar itself is hidden. scroll-behavior keeps those
+       focus-driven jumps animated rather than instant. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
+    background-color: var(--gg-paper);
+    list-style: none;
+  }
+
+  /* Chrome, Safari and Edge need the pseudo-element; the properties above
+     cover Firefox and legacy Edge. */
+  .gift-guide__size-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gift-guide__size-list[hidden] {
+    display: none;
+  }
+
+
+  .gift-guide__size-option {
+    padding: 0.6rem 0.75rem;
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
+    font-size: 0.8rem;
+    /* Explicit, so row height does not swing with the merchant's paragraph
+       line-height setting — a "loose" setting made five rows overflow. */
+    line-height: 1.4;
+    text-align: center;
+    cursor: pointer;
+    /* Slow, so the white → grey → black ramp is legible. Interpolating
+       background-color between the two passes through the greys on its own. */
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  /* Deliberately not plain `:focus`. Opening the drawer moves focus onto a row,
+     and filling it black would read as a size already being chosen. Keyboard
+     users still get the cue, because :focus-visible matches for them. */
+  .gift-guide__size-option:hover,
+  .gift-guide__size-option:focus-visible,
+  .gift-guide__size-option[aria-selected='true'] {
+    background-color: var(--gg-ink);
+    color: var(--gg-paper);
+    outline: none;
+  }
+
+  .gift-guide__size-option:focus {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-guide__size-option {
+      transition: none;
+    }
+  }
+
+  .gift-guide__form {
+    /* Separates the button from the size control above it. */
+    margin-block-start: 1rem;
+  }
+
+  .gift-guide__error {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--color-error, #b3261e);
+  }
+
+  .gift-guide__error[hidden] {
+    display: none;
+  }
+
+  .gift-guide__add {
+    width: 100%;
+    padding-block: 0.9em;
+    padding-inline: 1rem;
+    font-size: 0.8rem;
+  }
+
+  /* The success state carries its own check mark, so the arrow is redundant
+     while it shows. gift-guide.js adds this class on a successful add and
+     clears it after ~2s, restoring the arrow with the default label. */
+  .gift-guide__add--added .gift-guide__arrow {
+    display: none;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gift guide",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Top bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_header_bar",
+      "label": "Show top bar",
+      "info": "Turn off if the theme header already shows the logo and Choose Gift button.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "Top bar brand name",
+      "info": "Used when no logo is set in theme settings. Defaults to the store name if left blank.",
+      "default": "TISSO VISON"
+    },
+    {
+      "type": "text",
+      "id": "header_tagline",
+      "label": "Top bar tagline",
+      "default": "Find the ideal gift for your loved ones."
+    },
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Gift Guide"
+    },
+    {
+      "type": "richtext",
+      "id": "subtext",
+      "label": "Subtext",
+      "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>"
+    },
+    {
+      "type": "text",
+      "id": "hero_button_label",
+      "label": "Hero button label",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "hero_button_link",
+      "label": "Hero button link"
+    },
+    {
+      "type": "text",
+      "id": "choose_gift_label",
+      "label": "Top-right button label",
+      "default": "Choose Gift"
+    },
+    {
+      "type": "url",
+      "id": "choose_gift_link",
+      "label": "Top-right button link"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Button hover fill",
+      "default": "#FFF544"
+    },
+    {
+      "type": "text",
+      "id": "size_placeholder",
+      "label": "Size dropdown placeholder",
+      "default": "Choose your size"
+    },
+    {
+      "type": "header",
+      "content": "Banner"
+    },
+    {
+      "type": "text",
+      "id": "banner_text",
+      "label": "Banner text",
+      "default": "Sustainable, ethically made clothes in sizes XXS to 6XL"
+    },
+    {
+      "type": "text",
+      "id": "products_heading",
+      "label": "Products heading",
+      "default": "Tisso vison in the wild"
+    },
+    {
+    "type": "font_picker",
+    "id": "products_heading_font",
+    "label": "Products heading font",
+    "default": "helvetica_n4"
+    },
+    {
+      "type": "header",
+      "content": "Products",
+      "info": "Leave a slot empty to fall back to the default handle for that position."
+    },
+    {
+      "type": "product",
+      "id": "product_1",
+      "label": "Product 1"
+    },
+    {
+      "type": "range",
+      "id": "product_1_x",
+      "label": "Product 1 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_1_y",
+      "label": "Product 1 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "product",
+      "id": "product_2",
+      "label": "Product 2"
+    },
+    {
+      "type": "range",
+      "id": "product_2_x",
+      "label": "Product 2 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_2_y",
+      "label": "Product 2 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "product",
+      "id": "product_3",
+      "label": "Product 3"
+    },
+    {
+      "type": "range",
+      "id": "product_3_x",
+      "label": "Product 3 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_3_y",
+      "label": "Product 3 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "product",
+      "id": "product_4",
+      "label": "Product 4"
+    },
+    {
+      "type": "range",
+      "id": "product_4_x",
+      "label": "Product 4 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_4_y",
+      "label": "Product 4 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "product",
+      "id": "product_5",
+      "label": "Product 5"
+    },
+    {
+      "type": "range",
+      "id": "product_5_x",
+      "label": "Product 5 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_5_y",
+      "label": "Product 5 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "product",
+      "id": "product_6",
+      "label": "Product 6"
+    },
+    {
+      "type": "range",
+      "id": "product_6_x",
+      "label": "Product 6 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_6_y",
+      "label": "Product 6 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gift guide",
+      "category": "Storytelling"
+    }
+  ]
+}
+{% endschema %}
