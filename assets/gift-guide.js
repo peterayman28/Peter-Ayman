@@ -70,6 +70,7 @@ class GiftGuideComponent extends Component {
     for (const dialog of this.#quickViews) {
       dialog.addEventListener('click', this.#handleDialogClick);
       dialog.addEventListener('close', this.#handleDialogClose);
+      dialog.addEventListener('cancel', this.#handleDialogCancel);
     }
   }
 
@@ -82,6 +83,7 @@ class GiftGuideComponent extends Component {
     for (const dialog of this.#quickViews) {
       dialog.removeEventListener('click', this.#handleDialogClick);
       dialog.removeEventListener('close', this.#handleDialogClose);
+      dialog.removeEventListener('cancel', this.#handleDialogCancel);
     }
 
     for (const timeout of this.#addedTimeouts.values()) clearTimeout(timeout);
@@ -192,13 +194,191 @@ class GiftGuideComponent extends Component {
     this.#syncQuickView(index);
   }
 
+  /* ------------------------------------------------------------------ *
+   * Size: a custom listbox standing in for a native <select>
+   * ------------------------------------------------------------------ */
+
   /**
-   * Handles a size dropdown change.
-   *
-   * @param {{ index: number }} data - Parsed from the `on:change` attribute.
+   * @param {number} index - The product's position in the grid.
+   * @returns {Element | null} The size dropdown wrapper, if the product has sizes.
    */
-  selectSize({ index }) {
+  #sizeDropdown(index) {
+    return this.#quickViews[index]?.querySelector('[data-gift-guide-size]') ?? null;
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {boolean} Whether this product has a Size option at all.
+   */
+  #hasSizeOptions(index) {
+    return this.#sizeDropdown(index) !== null;
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {string | null} The chosen size, or null while the placeholder shows.
+   */
+  #selectedSize(index) {
+    const selected = this.#sizeDropdown(index)?.querySelector('[role="option"][aria-selected="true"]');
+    return selected instanceof HTMLElement ? (selected.dataset.value ?? null) : null;
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {HTMLElement[]} The size option rows.
+   */
+  #sizeOptions(index) {
+    const options = this.#sizeDropdown(index)?.querySelectorAll('[role="option"]') ?? [];
+    return /** @type {HTMLElement[]} */ ([...options]);
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {HTMLElement | null} The button that opens the listbox.
+   */
+  #sizeTrigger(index) {
+    const trigger = this.#sizeDropdown(index)?.querySelector('[data-gift-guide-size-trigger]');
+    return trigger instanceof HTMLElement ? trigger : null;
+  }
+
+  /**
+   * @param {number} index - The product's position in the grid.
+   * @returns {boolean} Whether the listbox is currently expanded.
+   */
+  #sizeMenuOpen(index) {
+    return this.#sizeTrigger(index)?.getAttribute('aria-expanded') === 'true';
+  }
+
+  /**
+   * Opens or closes the size listbox.
+   *
+   * @param {{ index: number }} data - Parsed from the `on:click` attribute.
+   */
+  toggleSizeMenu({ index }) {
+    if (this.#sizeMenuOpen(index)) this.#closeSizeMenu(index);
+    else this.#openSizeMenu(index);
+  }
+
+  /**
+   * Expands the listbox and moves focus to the selected row, or the first.
+   *
+   * @param {number} index - The product's position in the grid.
+   */
+  #openSizeMenu(index) {
+    const trigger = this.#sizeTrigger(index);
+    const list = this.#sizeDropdown(index)?.querySelector('[role="listbox"]');
+    if (!trigger || !(list instanceof HTMLElement)) return;
+
+    trigger.setAttribute('aria-expanded', 'true');
+    list.hidden = false;
+
+    const options = this.#sizeOptions(index);
+    const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
+    (selected ?? options[0])?.focus();
+  }
+
+  /**
+   * Collapses the listbox.
+   *
+   * @param {number} index - The product's position in the grid.
+   * @param {object} [options] - Options.
+   * @param {boolean} [options.focusTrigger] - Whether to return focus to the trigger.
+   */
+  #closeSizeMenu(index, { focusTrigger = false } = {}) {
+    const trigger = this.#sizeTrigger(index);
+    const list = this.#sizeDropdown(index)?.querySelector('[role="listbox"]');
+    if (!trigger || !(list instanceof HTMLElement)) return;
+
+    trigger.setAttribute('aria-expanded', 'false');
+    list.hidden = true;
+
+    if (focusTrigger) trigger.focus();
+  }
+
+  /**
+   * Handles a click on a size option row.
+   *
+   * @param {{ index: number }} data - Parsed from the `on:click` attribute.
+   * @param {MouseEvent & { target: HTMLElement }} event - The originating click.
+   */
+  selectSize({ index }, event) {
+    if (event.target instanceof HTMLElement) this.#applySize(index, event.target);
+  }
+
+  /**
+   * Marks a size as selected, updates the trigger text, and collapses the list.
+   *
+   * @param {number} index - The product's position in the grid.
+   * @param {HTMLElement} chosen - The chosen option row.
+   */
+  #applySize(index, chosen) {
+    for (const option of this.#sizeOptions(index)) {
+      option.setAttribute('aria-selected', String(option === chosen));
+    }
+
+    const value = this.#sizeDropdown(index)?.querySelector('[data-gift-guide-size-value]');
+    if (value) value.textContent = chosen.dataset.value ?? '';
+
+    this.#closeSizeMenu(index, { focusTrigger: true });
     this.#syncQuickView(index);
+  }
+
+  /**
+   * Keyboard support for the listbox, per the ARIA authoring practices.
+   * Bound on the wrapper, so it covers both the trigger and the option rows.
+   *
+   * Note the preventDefault() calls on Enter/Space: without them the browser
+   * would also fire the trigger button's native click and immediately undo
+   * whatever this handler just did.
+   *
+   * @param {{ index: number }} data - Parsed from the `on:keydown` attribute.
+   * @param {KeyboardEvent} event - The keydown.
+   */
+  sizeKeydown({ index }, event) {
+    const options = this.#sizeOptions(index);
+    if (!options.length) return;
+
+    const expanded = this.#sizeMenuOpen(index);
+    const active = options.indexOf(/** @type {HTMLElement} */ (document.activeElement));
+
+    switch (event.key) {
+      case 'ArrowDown':
+      case 'ArrowUp': {
+        event.preventDefault();
+        if (!expanded) return this.#openSizeMenu(index);
+
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        const next = active === -1 ? 0 : (active + step + options.length) % options.length;
+        options[next]?.focus();
+        return;
+      }
+
+      case 'Home':
+      case 'End': {
+        if (!expanded) return;
+        event.preventDefault();
+        (event.key === 'Home' ? options[0] : options[options.length - 1])?.focus();
+        return;
+      }
+
+      case 'Enter':
+      case ' ': {
+        event.preventDefault();
+        if (!expanded) return this.#openSizeMenu(index);
+
+        const option = options[active];
+        if (option) this.#applySize(index, option);
+        else this.#closeSizeMenu(index, { focusTrigger: true });
+        return;
+      }
+
+      /* Escape is handled by #handleDialogCancel, not here. The browser turns
+       * it into a close request on the dialog; if this handler collapsed the
+       * menu first, that request would then close the dialog too. */
+
+      case 'Tab':
+        if (expanded) this.#closeSizeMenu(index);
+    }
   }
 
   /* ------------------------------------------------------------------ *
@@ -243,8 +423,7 @@ class GiftGuideComponent extends Component {
     const selectedSwatch = dialog.querySelector('[data-gift-guide-swatch][aria-pressed="true"]');
     const color = selectedSwatch instanceof HTMLElement ? (selectedSwatch.dataset.value ?? null) : null;
 
-    const sizeSelect = dialog.querySelector('[data-gift-guide-size]');
-    const size = sizeSelect instanceof HTMLSelectElement ? sizeSelect.value : null;
+    const size = this.#selectedSize(index);
 
     return (
       this.#variants(index).find(
@@ -274,7 +453,11 @@ class GiftGuideComponent extends Component {
     const label = button.querySelector('[data-gift-guide-add-label]');
     const purchasable = Boolean(variant?.available);
 
-    button.disabled = !purchasable;
+    // The dropdown opens on its placeholder rather than a preselected size, so
+    // nothing can be added until the shopper has actually chosen one.
+    const awaitingSize = this.#hasSizeOptions(index) && this.#selectedSize(index) === null;
+
+    button.disabled = !purchasable || awaitingSize;
 
     // Leave an in-flight "Added ✓" confirmation alone; it restores itself.
     if (this.#addedTimeouts.has(index) || !label) return;
@@ -305,7 +488,8 @@ class GiftGuideComponent extends Component {
     const variant = this.#resolveVariant(index);
     const button = dialog?.querySelector('[data-gift-guide-add]');
 
-    if (!variant?.available || !(button instanceof HTMLButtonElement)) return;
+    const awaitingSize = this.#hasSizeOptions(index) && this.#selectedSize(index) === null;
+    if (!variant?.available || awaitingSize || !(button instanceof HTMLButtonElement)) return;
 
     const body = new FormData();
     body.set('id', String(variant.id));
@@ -434,7 +618,34 @@ class GiftGuideComponent extends Component {
    * @param {MouseEvent} event - The click inside the dialog.
    */
   #handleDialogClick = (event) => {
-    if (event.target instanceof HTMLDialogElement) event.target.close();
+    if (event.target instanceof HTMLDialogElement) {
+      event.target.close();
+      return;
+    }
+
+    // A click anywhere else inside the dialog dismisses an open size menu.
+    const dialog = event.currentTarget;
+    if (!(event.target instanceof Element) || !(dialog instanceof HTMLDialogElement)) return;
+    if (!event.target.closest('[data-gift-guide-size]')) {
+      this.#closeSizeMenu(Number(dialog.dataset.index));
+    }
+  };
+
+  /**
+   * Intercepts the browser's close request (Escape) so that when the size menu
+   * is open, Escape collapses the menu instead of closing the whole dialog.
+   *
+   * @param {Event} event - The dialog's cancel event.
+   */
+  #handleDialogCancel = (event) => {
+    const dialog = event.currentTarget;
+    if (!(dialog instanceof HTMLDialogElement)) return;
+
+    const index = Number(dialog.dataset.index);
+    if (!this.#sizeMenuOpen(index)) return;
+
+    event.preventDefault();
+    this.#closeSizeMenu(index, { focusTrigger: true });
   };
 
   /**
@@ -445,6 +656,9 @@ class GiftGuideComponent extends Component {
   #handleDialogClose = (event) => {
     const dialog = event.currentTarget;
     if (!(dialog instanceof HTMLDialogElement)) return;
+
+    // Leave the size menu collapsed for the next time this dialog opens.
+    this.#closeSizeMenu(Number(dialog.dataset.index));
 
     const trigger = this.querySelector(`[data-gift-guide-trigger="${dialog.dataset.index}"]`);
     if (trigger instanceof HTMLElement) trigger.focus();
