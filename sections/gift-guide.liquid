@@ -70,31 +70,25 @@
 
   {%- comment -%}
     ---------- Hero ----------
-    The top frame spans the full width; the bottom frame sits under it on the
-    right only, leaving the left clear for the copy overlaid on top.
+    Row 1 is the full-width illustration. Row 2 is a real two-column grid —
+    copy on the left, illustration on the right — so neither can overlap the
+    other at any width. Nothing here is absolutely positioned.
   {%- endcomment -%}
   <div class="gift-guide__hero">
-    <div class="gift-guide__hero-art">
+    <div class="gift-guide__hero-top">
       <img
         src="{{ 'hero-frame-top.svg' | asset_url }}"
         alt=""
         width="3840"
         height="1065"
-        class="gift-guide__hero-frame gift-guide__hero-frame--top"
+        class="gift-guide__hero-frame"
         loading="eager"
         fetchpriority="high"
       >
-      <img
-        src="{{ 'hero-frame-bottom.svg' | asset_url }}"
-        alt=""
-        width="2374"
-        height="1072"
-        class="gift-guide__hero-frame gift-guide__hero-frame--bottom"
-        loading="eager"
-      >
     </div>
 
-    <div class="gift-guide__hero-copy">
+    <div class="gift-guide__hero-row">
+      <div class="gift-guide__hero-copy">
       {%- if section.settings.heading != blank -%}
         <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
       {%- endif -%}
@@ -116,7 +110,19 @@
           {{ section.settings.hero_button_label }}
           <span aria-hidden="true">&rarr;</span>
         </a>
-      {%- endif -%}
+        {%- endif -%}
+      </div>
+
+      <div class="gift-guide__hero-aside">
+        <img
+          src="{{ 'hero-frame-bottom.svg' | asset_url }}"
+          alt=""
+          width="2374"
+          height="1072"
+          class="gift-guide__hero-frame"
+          loading="eager"
+        >
+      </div>
     </div>
   </div>
 
@@ -706,45 +712,45 @@
     margin-inline: auto;
   }
 
-  .gift-guide__hero-art {
-    display: block;
-    font-size: 0;
+  .gift-guide__hero-top {
+    line-height: 0;
   }
 
+  /* Scales down with whatever column holds it, never past its own width. */
   .gift-guide__hero-frame {
     display: block;
+    width: 100%;
+    max-width: 100%;
     height: auto;
   }
 
-  .gift-guide__hero-frame--top {
-    width: 100%;
+  /* Two real columns. minmax(0, 1fr) rather than a bare 1fr: the default
+     min-width:auto lets a grid item refuse to shrink below its content, which
+     is what pushes columns into each other as the window narrows. */
+  .gift-guide__hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 4rem);
+    padding-block: clamp(1rem, 2vw, 3rem);
+    padding-inline: clamp(1rem, 6%, 12rem);
   }
 
-  /* Right-hand side only, so the left stays clear for the copy. Narrowing it
-     also shortens the hero, bringing its proportions close to the reference. */
-  .gift-guide__hero-frame--bottom {
-    width: 62%;
-    margin-inline-start: auto;
+  .gift-guide__hero-aside {
+    /* Same reason as above — lets the illustration shrink with its column. */
+    min-width: 0;
   }
 
   /* Overlaid on the illustration rather than beside it. `top` is a percentage
      of the hero's height, so the copy holds its position as the art scales. */
+  /* In flow inside its own grid column — nothing absolute, so it cannot
+     overlap the illustration beside it at any width. */
   .gift-guide__hero-copy {
-    position: absolute;
-    top: 52%;
-    /* Upper bound raised so the inset stays proportional on wide screens; at
-       6rem it collapsed to 4% of the hero and the copy hugged the edge. */
-    inset-inline-start: clamp(1rem, 8%, 12rem);
-    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
-    /* Proportional, so the copy keeps its share of the hero as the screen
-       grows. A pixel cap here froze it at ~19% of a large hero. The max
-       matches 34% of the hero's own 2373px ceiling. */
-    width: 34%;
-    max-width: 807px;
+    min-width: 0;
     text-align: left;
   }
 
