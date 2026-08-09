@@ -1025,12 +1025,17 @@
   }
 
   /* Colour chip: a small rectangle on the left edge, the full height of the
-     button. The inset hairline keeps pale colours (white, cream) visible. */
+     button. The inset hairline keeps pale colours (white, cream) visible.
+
+     Sits at z-index -2, one layer below the fill at -1, so the black sweep
+     passes over the chip and covers it rather than the chip punching through.
+     Both stay negative, so the label still paints above them. */
   .gift-guide__color::after {
     content: '';
     position: absolute;
     inset-block: 0;
     left: 0;
+    z-index: -2;
     width: 6px;
     background-color: var(--gg-color-bar, transparent);
     box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 15%);
