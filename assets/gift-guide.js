@@ -121,7 +121,7 @@ class GiftGuideComponent extends Component {
    *
    * @param {{ index: number }} data - Parsed from the `on:click` attribute.
    */
-  openPreview({ index }) {
+openPreview({ index }) {
     this.#closeAllPreviews();
 
     const preview = this.#previews[index];
@@ -129,6 +129,9 @@ class GiftGuideComponent extends Component {
 
     preview.hidden = false;
     this.#openPreviewIndex = index;
+
+    const trigger = this.querySelector(`[data-gift-guide-trigger="${index}"]`);
+    if (trigger instanceof HTMLElement) trigger.setAttribute('aria-expanded', 'true');
 
     // Move focus into the preview so keyboard users land on the new content.
     const focusable = preview.querySelector('[data-gift-guide-expand]');
