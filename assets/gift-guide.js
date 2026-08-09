@@ -663,6 +663,13 @@ class GiftGuideComponent extends Component {
     const label = button.querySelector('[data-gift-guide-add-label]');
     if (label) label.textContent = button.dataset.addedLabel ?? '';
 
+    // The success label carries its own check mark, so the arrow is redundant.
+    // Hidden with an inline style rather than by the class alone: an inline
+    // style beats any stylesheet rule, so this holds even if the section CSS
+    // served to the browser is stale.
+    const arrow = button.querySelector('.gift-guide__arrow');
+    if (arrow instanceof HTMLElement) arrow.style.display = 'none';
+
     button.classList.add('gift-guide__add--added');
     this.#restoreLabelAfterDelay(index, button);
   }
@@ -678,6 +685,11 @@ class GiftGuideComponent extends Component {
 
     const timeout = setTimeout(() => {
       this.#addedTimeouts.delete(index);
+
+      // Clearing the inline value hands display back to the stylesheet.
+      const arrow = button.querySelector('.gift-guide__arrow');
+      if (arrow instanceof HTMLElement) arrow.style.display = '';
+
       button.classList.remove('gift-guide__add--added');
       this.#syncQuickView(index);
     }, ADDED_STATE_DURATION);
