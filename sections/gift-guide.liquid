@@ -1137,7 +1137,7 @@
     isolation: isolate;
     overflow: hidden;
     padding: 0.6rem 0.5rem;
-    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
+    border: 1px solid var(--gg-ink);
     background-color: var(--gg-paper);
     color: var(--gg-ink);
     font-family: inherit;
@@ -1251,14 +1251,11 @@
   }
 
   .gift-guide__size-list {
-    position: absolute;
-    inset-inline: 0;
-    /* Overlap the trigger's border so the two read as one control. */
-    top: calc(100% - 1px);
-    z-index: 2;
-    /* Scrolls within itself rather than growing the popup. Roomy enough for a
-       full XS–XL run; gift-guide.js narrows this to the space actually
-       available so the list can never run off-screen. */
+    /* In normal flow rather than absolutely positioned: the popup grows to fit
+       it, so it can neither be cut off by the card's edge nor spill outside the
+       popup's border. The negative margin overlaps the trigger's border so the
+       two still read as one control. */
+    /* Roomy enough for a full XS-XL run; longer lists scroll inside. */
     max-height: 16rem;
     /* Still scrolls — by wheel, trackpad, drag, or arrow keys moving focus —
        but the scrollbar itself is hidden. scroll-behavior keeps those
@@ -1268,7 +1265,9 @@
     scroll-behavior: smooth;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    margin: 0;
+    /* Negative top margin overlaps the trigger's border so the two read as one
+       control, the way the absolute `top: calc(100% - 1px)` used to. */
+    margin: -1px 0 0;
     padding: 0;
     border: 1px solid var(--gg-ink);
     background-color: var(--gg-paper);
