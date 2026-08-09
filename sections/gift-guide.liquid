@@ -43,7 +43,7 @@
             | image_tag: widths: '150,300', sizes: '150px', alt: shop.name, class: 'gift-guide__topbar-logo'
           }}
         {%- else -%}
-          {{ shop.name }}
+          {{ section.settings.brand_name | default: shop.name }}
         {%- endif -%}
       </div>
 
@@ -775,8 +775,7 @@
     justify-content: center;
     padding-block: 1.15rem;
     padding-inline: var(--page-margin, 1rem);
-    /* Light band with dark text, as in the reference. */
-    background-color: rgb(var(--color-foreground-rgb) / 5%);
+    /* No background band — the text sits directly on the page. */
     color: var(--gg-ink);
   }
 
@@ -1258,6 +1257,13 @@
       "label": "Show top bar",
       "info": "Turn off if the theme header already shows the logo and Choose Gift button.",
       "default": true
+    },
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "Top bar brand name",
+      "info": "Used when no logo is set in theme settings. Defaults to the store name if left blank.",
+      "default": "TISSO VISON"
     },
     {
       "type": "text",
