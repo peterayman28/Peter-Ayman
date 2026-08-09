@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "gift_guide": {
+      "type": "gift-guide",
+      "settings": {
+        "heading": "The Gift Guide",
+        "subtext": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
+        "hero_button_label": "Shop Now",
+        "hero_button_link": "shopify:\/\/collections\/all",
+        "choose_gift_label": "Choose Gift",
+        "accent_color": "#FFF544",
+        "banner_text": "Sustainable, ethically made clothes in sizes XXS to 6XL"
+      }
+    }
+  },
+  "order": ["gift_guide"]
+}
