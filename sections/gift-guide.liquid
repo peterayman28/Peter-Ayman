@@ -257,7 +257,12 @@
                     {{
                       gg_product.featured_image
                       | image_url: width: 280
-                      | image_tag: loading: 'lazy', widths: '120,240,280', sizes: '120px', alt: gg_product.title
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '120,240,280',
+                        sizes: '120px',
+                        alt: gg_product.title,
+                        class: 'gift-guide__quickview-image'
                     }}
                   {%- endif -%}
                 </div>
@@ -291,68 +296,12 @@
                     {%- endcomment -%}
                     <div class="gift-guide__colors">
                       {%- for option_value in color_option.values -%}
-                        {%- liquid
-                          # Colour for the indicator bar. Prefer the merchant's
-                          # configured swatch; otherwise map the option value's
-                          # own name, falling back to a neutral grey so the CSS
-                          # value is always valid.
-                          assign color_key = option_value.name | downcase | strip
-                          assign bar_color = '#cccccc'
-
-                          case color_key
-                            when 'black'
-                              assign bar_color = '#000000'
-                            when 'white'
-                              assign bar_color = '#ffffff'
-                            when 'grey', 'gray', 'charcoal'
-                              assign bar_color = '#808080'
-                            when 'silver'
-                              assign bar_color = '#c0c0c0'
-                            when 'blue'
-                              assign bar_color = '#1d4ed8'
-                            when 'navy'
-                              assign bar_color = '#1e3a5f'
-                            when 'teal'
-                              assign bar_color = '#0d9488'
-                            when 'red'
-                              assign bar_color = '#dc2626'
-                            when 'burgundy', 'maroon'
-                              assign bar_color = '#7f1d1d'
-                            when 'pink'
-                              assign bar_color = '#ec4899'
-                            when 'orange'
-                              assign bar_color = '#f97316'
-                            when 'yellow'
-                              assign bar_color = '#facc15'
-                            when 'gold'
-                              assign bar_color = '#d4af37'
-                            when 'green'
-                              assign bar_color = '#16a34a'
-                            when 'olive'
-                              assign bar_color = '#556b2f'
-                            when 'purple'
-                              assign bar_color = '#7c3aed'
-                            when 'brown'
-                              assign bar_color = '#92400e'
-                            when 'tan', 'khaki'
-                              assign bar_color = '#c3b091'
-                            when 'beige'
-                              assign bar_color = '#e8dcc8'
-                            when 'cream', 'ivory'
-                              assign bar_color = '#fdf6e3'
-                          endcase
-
-                          if option_value.swatch.color
-                            assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
-                          endif
-                        -%}
                         <button
                           type="button"
                           class="gift-guide__color"
                           data-gift-guide-swatch
                           data-value="{{ option_value.name | escape }}"
                           aria-pressed="false"
-                          style="--gg-color-bar: {{ bar_color }};"
                           on:click="/selectColor?index={{ rendered_index }}"
                         >
                           {{ option_value.name }}
@@ -863,14 +812,20 @@
     flex: none;
     width: 120px;
     height: 140px;
+    /* Crops anything that somehow escapes the sizing below. */
+    overflow: hidden;
   }
 
-  /* Fill the box completely, cropping rather than stretching. */
-  .gift-guide__quickview-media img {
+  /* Applied to the <img> itself, not a wrapper. base.css:83 resets every image
+     to `width: 100%; height: auto` with `max-width: 100%`, which letterboxes a
+     fixed-height box — all three are overridden here. */
+  .gift-guide__quickview-media .gift-guide__quickview-image {
     display: block;
     width: 100%;
     height: 100%;
+    max-width: none;
     object-fit: cover;
+    object-position: center;
   }
 
   .gift-guide__quickview-summary {
@@ -937,6 +892,15 @@
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
+    /* Hover cue for the control as a whole. Outline rather than border, so
+       nothing shifts when it appears. */
+    outline: 1px solid transparent;
+    outline-offset: 2px;
+    transition: outline-color 0.2s ease;
+  }
+
+  .gift-guide__colors:hover {
+    outline-color: #9ec5fe;
   }
 
   .gift-guide__color {
@@ -980,18 +944,6 @@
     transform: scaleX(1);
   }
 
-  /* Indicator bar showing the colour each option represents. Always visible,
-     and painted as ::after so it stays above the fill animation. The inset
-     hairline keeps pale colours (white, cream) distinguishable. */
-  .gift-guide__color::after {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    left: 0;
-    width: 4px;
-    background-color: var(--gg-color-bar, transparent);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 15%);
-  }
 
   @media (prefers-reduced-motion: reduce) {
     .gift-guide__color::before {
@@ -1051,18 +1003,44 @@
   }
 
   .gift-guide__size-option {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     padding: 0.6rem 0.75rem;
     font-size: 0.8rem;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: color 0.25s ease;
   }
 
-  /* Light grey highlight on hover and on keyboard focus. */
+  /* Same left-to-right fill as the colour swatches. */
+  .gift-guide__size-option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--gg-ink);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.25s ease;
+  }
+
   .gift-guide__size-option:hover,
   .gift-guide__size-option:focus,
   .gift-guide__size-option:focus-visible {
-    background-color: rgb(var(--color-foreground-rgb) / 10%);
+    color: var(--gg-paper);
     outline: none;
+  }
+
+  .gift-guide__size-option:hover::before,
+  .gift-guide__size-option:focus::before,
+  .gift-guide__size-option:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-guide__size-option::before {
+      transition: none;
+    }
   }
 
   .gift-guide__size-option[aria-selected='true'] {
