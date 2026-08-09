@@ -742,8 +742,11 @@
 
   .gift-guide__quickview {
     /* A compact card, not a full-width product panel. */
-    width: 280px;
+    width: 320px;
     max-width: 92vw;
+    /* Caps the card against the viewport. Deliberately no `overflow` here:
+       the size list is absolutely positioned and a scroll container would
+       clip it. */
     max-height: 88vh;
     padding: 0;
     border: 0;
@@ -815,12 +818,19 @@
   }
 
   .gift-guide__quickview-description {
-    /* Scrolls rather than truncates, so the card stays compact. */
-    max-height: 4.5rem;
-    overflow-y: auto;
+    /* Flows as normal text — no fixed height and no scroll container, so the
+       card simply grows to fit the copy. */
     font-size: 0.75rem;
-    line-height: 1.4;
+    line-height: 1.5;
     color: var(--color-foreground-muted, var(--gg-ink));
+  }
+
+  .gift-guide__quickview-description > :first-child {
+    margin-block-start: 0;
+  }
+
+  .gift-guide__quickview-description > :last-child {
+    margin-block-end: 0;
   }
 
   /* ---------- Variant controls ---------- */
@@ -944,8 +954,7 @@
     /* Overlap the trigger's border so the two read as one control. */
     top: calc(100% - 1px);
     z-index: 2;
-    max-height: 10rem;
-    overflow-y: auto;
+    /* No max-height: every size must be fully visible, never clipped. */
     margin: 0;
     padding: 0;
     border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
@@ -958,14 +967,17 @@
   }
 
   .gift-guide__size-option {
-    padding: 0.55rem 0.75rem;
+    padding: 0.6rem 0.75rem;
     font-size: 0.8rem;
     cursor: pointer;
+    transition: background-color 0.15s ease;
   }
 
+  /* Light grey highlight on hover and on keyboard focus. */
   .gift-guide__size-option:hover,
+  .gift-guide__size-option:focus,
   .gift-guide__size-option:focus-visible {
-    background-color: rgb(var(--color-foreground-rgb) / 8%);
+    background-color: rgb(var(--color-foreground-rgb) / 10%);
     outline: none;
   }
 
