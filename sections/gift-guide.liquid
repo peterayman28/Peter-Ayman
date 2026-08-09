@@ -26,7 +26,15 @@
 <gift-guide-component
   class="gift-guide"
   id="GiftGuide-{{ section.id }}"
-  style="--gg-accent: {{ section.settings.accent_color | default: '#FFF544' }};"
+  {%- comment -%}
+    The arrow asset is passed in as a custom property because a stylesheet block
+    cannot contain Liquid, and it is applied as a mask rather than an <img> so
+    it takes its colour from the button text and inverts on hover.
+  {%- endcomment -%}
+  style="
+    --gg-accent: {{ section.settings.accent_color | default: '#FFF544' }};
+    --gg-arrow: url('{{ 'arrow.svg' | asset_url }}');
+  "
 >
   {%- comment -%}
     ---------- Top bar ----------
@@ -62,7 +70,7 @@
           {% endif %}
         >
           {{ section.settings.choose_gift_label }}
-          <span aria-hidden="true">&rarr;</span>
+          <span class="gift-guide__arrow" aria-hidden="true"></span>
         </a>
       {%- endif -%}
     </div>
@@ -108,7 +116,7 @@
           {% endif %}
         >
           {{ section.settings.hero_button_label }}
-          <span aria-hidden="true">&rarr;</span>
+          <span class="gift-guide__arrow" aria-hidden="true"></span>
         </a>
         {%- endif -%}
       </div>
@@ -134,10 +142,15 @@
   {%- endif -%}
 
   {%- comment -%} ---------- Product grid ---------- {%- endcomment -%}
-  <ul
-    class="gift-guide__grid"
-    role="list"
-  >
+  <div class="gift-guide__products">
+    {%- if section.settings.products_heading != blank -%}
+      <h3 class="gift-guide__products-heading">{{ section.settings.products_heading }}</h3>
+    {%- endif -%}
+
+    <ul
+      class="gift-guide__grid"
+      role="list"
+    >
     {%- for position in (1..6) -%}
       {%- liquid
         assign setting_key = 'product_' | append: position
@@ -536,7 +549,7 @@
                         {{ 'products.product.sold_out' | t }}
                       {%- endif -%}
                     </span>
-                    <span aria-hidden="true">&rarr;</span>
+                    <span class="gift-guide__arrow" aria-hidden="true"></span>
                   </button>
                 </form>
               </div>
@@ -564,8 +577,9 @@
 
         {%- assign rendered_index = rendered_index | plus: 1 -%}
       {%- endif -%}
-    {%- endfor -%}
-  </ul>
+      {%- endfor -%}
+    </ul>
+  </div>
 </gift-guide-component>
 
 {% stylesheet %}
@@ -607,6 +621,24 @@
     line-height: 1;
     cursor: pointer;
     transition: color 0.3s ease;
+  }
+
+  /* assets/arrow.svg, 64x26. Drawn as a mask filled with currentColor so it
+     follows the button's text colour through the hover fill. */
+  .gift-guide__arrow {
+    flex: none;
+    display: inline-block;
+    width: 2.4em;
+    height: 1em;
+    background-color: currentColor;
+    -webkit-mask-image: var(--gg-arrow);
+    mask-image: var(--gg-arrow);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
 
   .gift-guide__btn::before {
@@ -808,7 +840,7 @@
     justify-content: center;
     padding-block: 1.15rem;
     padding-inline: var(--page-margin, 1rem);
-    /* No background band — the text sits directly on the page. */
+    background-color: #f5f5f5;
     color: var(--gg-ink);
   }
 
@@ -822,16 +854,29 @@
 
   /* ---------- Product grid ---------- */
 
+  /* Holds the heading and the grid on the same content width, so the heading
+     lines up with the left edge of the first product. */
+  .gift-guide__products {
+    width: 100%;
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
+    padding: clamp(2rem, 4vw, 5rem) clamp(1rem, 3%, 4rem);
+  }
+
+  .gift-guide__products-heading {
+    margin: 0 0 clamp(1rem, 2vw, 2rem);
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.25rem, 1.6vw, 1.75rem);
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
   .gift-guide__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--gg-gutter);
-    /* Same content width as the top bar, so three cards stay a sensible size
-       instead of ballooning on a wide monitor. */
-    max-width: var(--page-width, 1600px);
-    margin-inline: auto;
-    margin-block: 0;
-    padding: clamp(2rem, 4vw, 5rem) clamp(1rem, 3%, 4rem);
+    margin: 0;
+    padding: 0;
     list-style: none;
   }
 
@@ -1367,6 +1412,12 @@
       "id": "banner_text",
       "label": "Banner text",
       "default": "Sustainable, ethically made clothes in sizes XXS to 6XL"
+    },
+    {
+      "type": "text",
+      "id": "products_heading",
+      "label": "Products heading",
+      "default": "Tisso vison in the wild"
     },
     {
       "type": "header",
