@@ -598,7 +598,9 @@
     border: 0;
     border-radius: 0;
     font-family: var(--font-body--family);
-    font-size: clamp(0.875rem, 0.95vw, 1.35rem);
+    /* Shared by Shop Now, Choose Gift and Add to Cart. Ceiling lowered to 1rem
+       so buttons stop growing at a normal desktop size when zoomed out. */
+    font-size: clamp(0.875rem, 0.95vw, 1rem);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     text-decoration: none;
@@ -684,7 +686,7 @@
   }
 
   .gift-guide__topbar-brand {
-    font-size: clamp(0.9rem, 1.1vw, 1.4rem);
+    font-size: clamp(0.9rem, 1.1vw, 1.25rem);
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
@@ -706,9 +708,12 @@
 
   /* ---------- Hero ---------- */
 
+  /* Same content width as the top bar and product grid, so the hero shrinks
+     in step with the rest of the page instead of ballooning when zoomed out. */
   .gift-guide__hero {
     position: relative;
-    max-width: 2373px;
+    width: 100%;
+    max-width: var(--page-width, 1600px);
     margin-inline: auto;
   }
 
@@ -765,17 +770,20 @@
   .gift-guide__heading {
     margin: 0;
     font-family: var(--font-heading--family);
-    /* Stays on one line at every width. The text column is 29% of the hero and
-       "The Gift Guide" needs roughly 6.8x the font-size, so 3.6vw fills about
-       85% of it whatever the screen. */
-    font-size: clamp(1.75rem, 3.6vw, 5.5rem);
+    /* The ceiling is what stops the heading outgrowing its column once the hero
+       caps out. At a 1400px hero the text column is ~406px and "The Gift Guide"
+       needs roughly 6.8x the font-size, so 3.25rem fills ~87% of it. Below
+       ~1445px viewport the 3.6vw term governs and this never engages. */
+    font-size: clamp(1.75rem, 3.6vw, 3.25rem);
     line-height: 1.05;
   }
 
   .gift-guide__subtext {
     /* Narrower than the heading above it, so the paragraph wraps sooner. */
     max-width: 88%;
-    font-size: clamp(0.8rem, 1.1vw, 1.6rem);
+    /* Ceiling kept near the theme's own body size (14px) rather than 1.6rem,
+       which read as oversized once the hero stopped growing. */
+    font-size: clamp(0.8rem, 1.1vw, 1.125rem);
     line-height: 1.55;
     color: var(--color-foreground-muted, var(--gg-ink));
   }
