@@ -676,7 +676,8 @@
     align-items: center;
     gap: 1rem;
     /* Aligned to the store's content width so it does not stretch edge to edge
-       on a wide monitor. */
+       on a wide monitor. width:100% so it shrinks freely below that bound. */
+    width: 100%;
     max-width: var(--page-width, 1600px);
     margin-inline: auto;
     padding: 0.75rem clamp(1rem, 3%, 4rem);
@@ -684,19 +685,19 @@
   }
 
   .gift-guide__topbar-brand {
-    font-size: clamp(0.9rem, 1.1vw, 1.4rem);
+    font-size: max(0.9rem, 1.1vw);
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
 
   .gift-guide__topbar-logo {
     width: auto;
-    max-height: 28px;
+    max-height: max(1.75rem, 2vw);
   }
 
   .gift-guide__topbar-tagline {
     margin: 0;
-    font-size: clamp(0.75rem, 0.9vw, 1.05rem);
+    font-size: max(0.75rem, 0.9vw);
     text-align: center;
   }
 
@@ -706,10 +707,11 @@
 
   /* ---------- Hero ---------- */
 
+  /* Fully fluid: no pixel ceiling, so the hero and everything measured against
+     it keep the same proportions at any window width or zoom level. */
   .gift-guide__hero {
     position: relative;
-    max-width: 2373px;
-    margin-inline: auto;
+    width: 100%;
   }
 
   .gift-guide__hero-top {
@@ -752,30 +754,33 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.25rem;
+    /* max() not clamp(): a lower bound for very small widths, but no upper one,
+       so spacing stays proportional however far the page is zoomed out. */
+    gap: max(0.75rem, 1.2vw);
     min-width: 0;
     /* Percentages here resolve against this column, which is 38% of the hero:
        16% start and 8% end work out as 6% and 3% of the hero, leaving the text
        29% of it — the same share as the reference. */
-    padding-block: clamp(1rem, 2vw, 3rem);
-    padding-inline: clamp(1rem, 16%, 12rem) clamp(0.5rem, 8%, 4rem);
+    padding-block: max(1rem, 2vw);
+    padding-inline: max(1rem, 16%) max(0.5rem, 8%);
     text-align: left;
   }
 
   .gift-guide__heading {
     margin: 0;
     font-family: var(--font-heading--family);
-    /* Stays on one line at every width. The text column is 29% of the hero and
-       "The Gift Guide" needs roughly 6.8x the font-size, so 3.6vw fills about
-       85% of it whatever the screen. */
-    font-size: clamp(1.75rem, 3.6vw, 5.5rem);
+    /* Stays on one line at every width AND every zoom level. The text column is
+       29% of the hero and "The Gift Guide" needs roughly 6.8x the font-size, so
+       3.6vw fills a constant ~84% of it. No upper bound: capping it in rem is
+       what let the type fall out of step with its column when zoomed out. */
+    font-size: max(1.75rem, 3.6vw);
     line-height: 1.05;
   }
 
   .gift-guide__subtext {
     /* Narrower than the heading above it, so the paragraph wraps sooner. */
     max-width: 88%;
-    font-size: clamp(0.8rem, 1.1vw, 1.6rem);
+    font-size: max(0.8rem, 1.1vw);
     line-height: 1.55;
     color: var(--color-foreground-muted, var(--gg-ink));
   }
@@ -788,8 +793,11 @@
     margin-block-end: 0;
   }
 
+  /* Proportional too, so it scales with the copy beside it rather than holding
+     a fixed physical size when zoomed out. Padding is in em, so it follows. */
   .gift-guide__hero-button {
     padding: 1.15em 2em;
+    font-size: max(0.75rem, 0.9vw);
   }
 
   /* ---------- Banner strip ---------- */
