@@ -28,76 +28,95 @@
   id="GiftGuide-{{ section.id }}"
   style="--gg-accent: {{ section.settings.accent_color }};"
 >
-  {%- comment -%} ---------- Hero ---------- {%- endcomment -%}
+  {%- comment -%}
+    ---------- Top bar ----------
+    Brand, tagline and the Choose Gift button on one white row above the hero.
+    Optional, so it can be turned off if the theme header already covers this.
+  {%- endcomment -%}
+  {%- if section.settings.show_header_bar -%}
+    <div class="gift-guide__topbar">
+      <div class="gift-guide__topbar-brand">
+        {%- if settings.logo != blank -%}
+          {{
+            settings.logo
+            | image_url: width: 300
+            | image_tag: widths: '150,300', sizes: '150px', alt: shop.name, class: 'gift-guide__topbar-logo'
+          }}
+        {%- else -%}
+          {{ shop.name }}
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.header_tagline != blank -%}
+        <p class="gift-guide__topbar-tagline">{{ section.settings.header_tagline }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.choose_gift_label != blank -%}
+        <a
+          class="gift-guide__btn gift-guide__btn--accent gift-guide__choose-gift"
+          {% if section.settings.choose_gift_link != blank %}
+            href="{{ section.settings.choose_gift_link }}"
+          {% else %}
+            role="link"
+            aria-disabled="true"
+          {% endif %}
+        >
+          {{ section.settings.choose_gift_label }}
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%}
+    ---------- Hero ----------
+    The two illustrations stack into one continuous full-width backdrop, with
+    the copy overlaid on the left rather than sitting in a column beside it.
+  {%- endcomment -%}
   <div class="gift-guide__hero">
-    {%- comment -%} Row 1: full-width illustration {%- endcomment -%}
-    <div class="gift-guide__hero-row gift-guide__hero-row--top">
+    <div class="gift-guide__hero-art">
       <img
         src="{{ 'hero-frame-top.svg' | asset_url }}"
         alt=""
         width="3840"
         height="1065"
-        class="gift-guide__hero-art"
+        class="gift-guide__hero-frame"
         loading="eager"
         fetchpriority="high"
       >
+      <img
+        src="{{ 'hero-frame-bottom.svg' | asset_url }}"
+        alt=""
+        width="2374"
+        height="1072"
+        class="gift-guide__hero-frame"
+        loading="eager"
+      >
     </div>
 
-    {%- comment -%}
-      Sits top-right of the whole hero, overlapping the row 1 illustration.
-    {%- endcomment -%}
-    {%- if section.settings.choose_gift_label != blank -%}
-      <a
-        class="gift-guide__btn gift-guide__btn--outline gift-guide__choose-gift"
-        {% if section.settings.choose_gift_link != blank %}
-          href="{{ section.settings.choose_gift_link }}"
-        {% else %}
-          role="link"
-          aria-disabled="true"
-        {% endif %}
-      >
-        {{ section.settings.choose_gift_label }}
-        <span aria-hidden="true">&rarr;</span>
-      </a>
-    {%- endif -%}
+    <div class="gift-guide__hero-copy">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
 
-    {%- comment -%} Row 2: copy on the left, illustration on the right {%- endcomment -%}
-    <div class="gift-guide__hero-row gift-guide__hero-row--bottom">
-      <div class="gift-guide__hero-copy">
-        {%- if section.settings.heading != blank -%}
-          <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
-        {%- endif -%}
+      {%- if section.settings.subtext != blank -%}
+        <div class="gift-guide__subtext rte">{{ section.settings.subtext }}</div>
+      {%- endif -%}
 
-        {%- if section.settings.subtext != blank -%}
-          <div class="gift-guide__subtext rte">{{ section.settings.subtext }}</div>
-        {%- endif -%}
-
-        {%- if section.settings.hero_button_label != blank -%}
-          <a
-            class="gift-guide__btn gift-guide__btn--primary gift-guide__hero-button"
-            {% if section.settings.hero_button_link != blank %}
-              href="{{ section.settings.hero_button_link }}"
-            {% else %}
-              role="link"
-              aria-disabled="true"
-            {% endif %}
-          >
-            {{ section.settings.hero_button_label }}
-            <span aria-hidden="true">&rarr;</span>
-          </a>
-        {%- endif -%}
-      </div>
-
-      <div class="gift-guide__hero-aside">
-        <img
-          src="{{ 'hero-frame-bottom.svg' | asset_url }}"
-          alt=""
-          width="2374"
-          height="1072"
-          class="gift-guide__hero-art"
-          loading="lazy"
+      {%- if section.settings.hero_button_label != blank -%}
+        <a
+          class="gift-guide__btn gift-guide__btn--primary gift-guide__hero-button"
+          {% if section.settings.hero_button_link != blank %}
+            href="{{ section.settings.hero_button_link }}"
+          {% else %}
+            role="link"
+            aria-disabled="true"
+          {% endif %}
         >
-      </div>
+          {{ section.settings.hero_button_label }}
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      {%- endif -%}
     </div>
   </div>
 
@@ -611,11 +630,10 @@
     --gg-btn-hover-color: var(--gg-ink);
   }
 
-  /* Default: outlined and light, fills with ink. */
-  .gift-guide__btn--outline {
-    background-color: var(--gg-paper);
+  /* Accent: yellow by default, fills with ink. */
+  .gift-guide__btn--accent {
+    background-color: var(--gg-accent);
     color: var(--gg-ink);
-    border-color: var(--gg-ink);
     --gg-btn-fill: var(--gg-ink);
     --gg-btn-hover-color: var(--gg-paper);
   }
@@ -636,6 +654,40 @@
     }
   }
 
+  /* ---------- Top bar ---------- */
+
+  .gift-guide__topbar {
+    /* Side columns share the leftover space, so the tagline sits dead centre
+       regardless of how wide the brand or button happen to be. */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem clamp(1rem, 3%, 4rem);
+    background-color: var(--gg-paper);
+  }
+
+  .gift-guide__topbar-brand {
+    font-size: clamp(0.9rem, 1.1vw, 1.4rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .gift-guide__topbar-logo {
+    width: auto;
+    max-height: 28px;
+  }
+
+  .gift-guide__topbar-tagline {
+    margin: 0;
+    font-size: clamp(0.75rem, 0.9vw, 1.05rem);
+    text-align: center;
+  }
+
+  .gift-guide__choose-gift {
+    justify-self: end;
+  }
+
   /* ---------- Hero ---------- */
 
   .gift-guide__hero {
@@ -644,54 +696,45 @@
     margin-inline: auto;
   }
 
-  .gift-guide__hero-row--top {
-    line-height: 0;
+  /* The two frames butt together into one continuous illustration. */
+  .gift-guide__hero-art {
+    display: block;
+    font-size: 0;
   }
 
-  .gift-guide__hero-art {
+  .gift-guide__hero-frame {
     display: block;
     width: 100%;
     height: auto;
   }
 
-  .gift-guide__choose-gift {
-    position: absolute;
-    top: clamp(1rem, 2.5%, 3rem);
-    right: clamp(1rem, 3%, 4rem);
-    z-index: 2;
-  }
-
-  .gift-guide__hero-row--bottom {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    align-items: center;
-    gap: var(--gg-gutter);
-    padding-inline: clamp(1rem, 3%, 4rem);
-  }
-
+  /* Overlaid on the illustration rather than beside it. `top` is a percentage
+     of the hero's height, so the copy holds its position as the art scales. */
   .gift-guide__hero-copy {
+    position: absolute;
+    top: 45%;
+    inset-inline-start: clamp(1rem, 8%, 6rem);
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    gap: 1.25rem;
+    width: min(45%, 620px);
     text-align: left;
-    gap: 1.5rem;
   }
 
   .gift-guide__heading {
-    /* Figma heading box ≈ 1080 / 2373 of the frame width. */
-    max-width: 45.5%;
     margin: 0;
     font-family: var(--font-heading--family);
-    font-size: clamp(2.5rem, 5.4vw, 8rem);
-    line-height: 1.02;
-    text-wrap: balance;
+    /* Sized to sit on one line: the old value overflowed its column and broke
+       "The Gift Guide" across two. */
+    font-size: clamp(1.75rem, 4vw, 5rem);
+    line-height: 1.05;
   }
 
   .gift-guide__subtext {
-    /* Figma paragraph box ≈ 1137 / 2373 of the frame width. */
-    max-width: 48%;
-    font-size: clamp(1rem, 1.15vw, 1.6rem);
-    line-height: 1.5;
+    font-size: clamp(0.8rem, 1vw, 1.25rem);
+    line-height: 1.55;
     color: var(--color-foreground-muted, var(--gg-ink));
   }
 
@@ -704,15 +747,7 @@
   }
 
   .gift-guide__hero-button {
-    /* Figma button ≈ 518 x 118, i.e. ~21.8% of frame width at a 4.4:1 ratio. */
-    min-width: 21.8%;
-    padding-block: 1.5em;
-  }
-
-  .gift-guide__hero-aside {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 1.15em 2em;
   }
 
   /* ---------- Banner strip ---------- */
@@ -723,8 +758,9 @@
     justify-content: center;
     padding-block: 1.15rem;
     padding-inline: var(--page-margin, 1rem);
-    background-color: var(--gg-ink);
-    color: var(--gg-paper);
+    /* Light band with dark text, as in the reference. */
+    background-color: rgb(var(--color-foreground-rgb) / 5%);
+    color: var(--gg-ink);
   }
 
   .gift-guide__banner-text {
@@ -1195,6 +1231,23 @@
   "name": "Gift guide",
   "tag": "section",
   "settings": [
+    {
+      "type": "header",
+      "content": "Top bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_header_bar",
+      "label": "Show top bar",
+      "info": "Turn off if the theme header already shows the logo and Choose Gift button.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "header_tagline",
+      "label": "Top bar tagline",
+      "default": "Find the ideal gift for your loved ones."
+    },
     {
       "type": "header",
       "content": "Hero"
