@@ -220,14 +220,11 @@
         -%}
 
         <li class="gift-guide__cell">
-          {%- comment -%} The grid image itself is the stage 1 trigger. {%- endcomment -%}
-          <button
-            type="button"
-            class="gift-guide__thumb"
-            data-gift-guide-trigger="{{ rendered_index }}"
-            aria-haspopup="dialog"
-            on:click="/openPreview?index={{ rendered_index }}"
-          >
+          {%- comment -%}
+            The image is presentational; the small "+" button is the only
+            interactive trigger for the stage 1 preview.
+          {%- endcomment -%}
+          <div class="gift-guide__thumb">
             {%- if gg_product.featured_image -%}
               {{
                 gg_product.featured_image
@@ -242,8 +239,18 @@
             {%- else -%}
               {{ 'product-apparel-1' | placeholder_svg_tag: 'gift-guide__thumb-image' }}
             {%- endif -%}
-            <span class="visually-hidden">{{ gg_product.title }}</span>
-          </button>
+
+            <button
+              type="button"
+              class="gift-guide__quick-trigger"
+              data-gift-guide-trigger="{{ rendered_index }}"
+              aria-haspopup="dialog"
+              aria-label="{{ gg_product.title | escape }}"
+              on:click="/openPreview?index={{ rendered_index }}"
+            >
+              <span aria-hidden="true">+</span>
+            </button>
+          </div>
 
           {%- comment -%} ---------- Stage 1: preview over the image ---------- {%- endcomment -%}
           <div
@@ -904,13 +911,11 @@
     position: relative;
   }
 
+  /* Presentational wrapper — the positioning context for the "+" button. */
   .gift-guide__thumb {
+    position: relative;
     display: block;
     width: 100%;
-    padding: 0;
-    border: 0;
-    background: none;
-    cursor: pointer;
   }
 
   .gift-guide__thumb-image {
@@ -919,11 +924,44 @@
     height: auto;
     aspect-ratio: 1;
     object-fit: cover;
-    transition: opacity 0.25s ease;
   }
 
-  .gift-guide__thumb:hover .gift-guide__thumb-image {
-    opacity: 0.9;
+  /* The only interactive part of a card. Hidden until the card is hovered, or
+     until it takes keyboard focus — without that second condition it would be
+     unreachable for anyone not using a mouse. */
+  .gift-guide__quick-trigger {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: var(--gg-paper);
+    color: var(--gg-ink);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 18%);
+  }
+
+  .gift-guide__cell:hover .gift-guide__quick-trigger,
+  .gift-guide__quick-trigger:focus-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-guide__quick-trigger {
+      transition: none;
+    }
   }
 
   /* ---------- Stage 1: preview layered over the image ---------- */
