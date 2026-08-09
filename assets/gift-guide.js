@@ -138,6 +138,22 @@ openPreview({ index }) {
     if (focusable instanceof HTMLElement) focusable.focus();
   }
 
+
+    /**
+   * Toggles the preview for a product — opens it if closed, closes it if open.
+   *
+   * @param {{ index: number }} data - Parsed from the `on:click` attribute.
+   */
+  togglePreview({ index }) {
+    if (this.#openPreviewIndex === index) {
+      this.#closeAllPreviews();
+      const trigger = this.querySelector(`[data-gift-guide-trigger="${index}"]`);
+      if (trigger instanceof HTMLElement) trigger.focus();
+    } else {
+      this.openPreview({ index });
+    }
+  }
+
   /**
    * Closes a preview without opening the quick view.
    *
