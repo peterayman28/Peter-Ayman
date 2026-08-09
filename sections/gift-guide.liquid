@@ -70,8 +70,8 @@
 
   {%- comment -%}
     ---------- Hero ----------
-    The two illustrations stack into one continuous full-width backdrop, with
-    the copy overlaid on the left rather than sitting in a column beside it.
+    The top frame spans the full width; the bottom frame sits under it on the
+    right only, leaving the left clear for the copy overlaid on top.
   {%- endcomment -%}
   <div class="gift-guide__hero">
     <div class="gift-guide__hero-art">
@@ -80,7 +80,7 @@
         alt=""
         width="3840"
         height="1065"
-        class="gift-guide__hero-frame"
+        class="gift-guide__hero-frame gift-guide__hero-frame--top"
         loading="eager"
         fetchpriority="high"
       >
@@ -89,7 +89,7 @@
         alt=""
         width="2374"
         height="1072"
-        class="gift-guide__hero-frame"
+        class="gift-guide__hero-frame gift-guide__hero-frame--bottom"
         loading="eager"
       >
     </div>
@@ -696,7 +696,6 @@
     margin-inline: auto;
   }
 
-  /* The two frames butt together into one continuous illustration. */
   .gift-guide__hero-art {
     display: block;
     font-size: 0;
@@ -704,22 +703,32 @@
 
   .gift-guide__hero-frame {
     display: block;
-    width: 100%;
     height: auto;
+  }
+
+  .gift-guide__hero-frame--top {
+    width: 100%;
+  }
+
+  /* Right-hand side only, so the left stays clear for the copy. Narrowing it
+     also shortens the hero, bringing its proportions close to the reference. */
+  .gift-guide__hero-frame--bottom {
+    width: 62%;
+    margin-inline-start: auto;
   }
 
   /* Overlaid on the illustration rather than beside it. `top` is a percentage
      of the hero's height, so the copy holds its position as the art scales. */
   .gift-guide__hero-copy {
     position: absolute;
-    top: 45%;
+    top: 52%;
     inset-inline-start: clamp(1rem, 8%, 6rem);
     z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
-    width: min(45%, 620px);
+    width: min(34%, 460px);
     text-align: left;
   }
 
@@ -733,6 +742,8 @@
   }
 
   .gift-guide__subtext {
+    /* Narrower than the heading above it, so the paragraph wraps sooner. */
+    max-width: 88%;
     font-size: clamp(0.8rem, 1vw, 1.25rem);
     line-height: 1.55;
     color: var(--color-foreground-muted, var(--gg-ink));
