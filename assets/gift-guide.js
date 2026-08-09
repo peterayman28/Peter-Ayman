@@ -174,6 +174,9 @@ openPreview({ index }) {
   /** Hides every stage 1 preview. */
   #closeAllPreviews() {
     for (const preview of this.#previews) preview.hidden = true;
+    for (const trigger of this.querySelectorAll('[data-gift-guide-trigger]')) {
+      trigger.setAttribute('aria-expanded', 'false');
+    }
     this.#openPreviewIndex = null;
   }
 
