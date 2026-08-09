@@ -26,9 +26,6 @@ const VIEWPORT_MARGIN = 16;
 /** Gap kept between the open size drawer and the popup's own edge (px). */
 const DRAWER_INSET = 8;
 
-/** Below this much room the drawer prefers to open upward instead (px). */
-const PREFERRED_MENU_HEIGHT = 160;
-
 /** Never shrink the drawer below roughly two rows (px). */
 const MIN_MENU_HEIGHT = 74;
 
@@ -361,25 +358,18 @@ class GiftGuideComponent extends Component {
     trigger.setAttribute('aria-expanded', 'true');
     list.hidden = false;
 
-    // Fit the drawer to the room actually available, and open upward when there
-    // is more of it above. Bounds are the popup's own box, not just the
-    // viewport, so the drawer stays inside the card rather than spilling past
-    // its edge; anything that does not fit is reached by scrolling the drawer.
+    // Always opens downward. Fit it to the room below the trigger, measured
+    // against the popup's own box rather than the viewport, so the drawer stays
+    // inside the card; anything that does not fit is reached by scrolling it.
     const triggerRect = trigger.getBoundingClientRect();
     const popup = this.#quickViews[index]?.getBoundingClientRect();
 
     const floor = Math.min(popup?.bottom ?? Infinity, window.innerHeight - VIEWPORT_MARGIN);
-    const ceiling = Math.max(popup?.top ?? 0, VIEWPORT_MARGIN);
-
-    const spaceBelow = floor - triggerRect.bottom - DRAWER_INSET;
-    const spaceAbove = triggerRect.top - ceiling - DRAWER_INSET;
-    const openUpward = spaceBelow < PREFERRED_MENU_HEIGHT && spaceAbove > spaceBelow;
 
     // The minimum can exceed the room available only if the card is
     // pathologically short, where an unusably thin drawer would be worse.
-    const available = Math.max(MIN_MENU_HEIGHT, Math.floor(openUpward ? spaceAbove : spaceBelow));
+    const available = Math.max(MIN_MENU_HEIGHT, Math.floor(floor - triggerRect.bottom - DRAWER_INSET));
 
-    list.classList.toggle('gift-guide__size-list--up', openUpward);
     list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, available)}px`;
 
     const options = this.#sizeOptions(index);
