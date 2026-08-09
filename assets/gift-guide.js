@@ -23,8 +23,14 @@ const ADDED_STATE_DURATION = 2000;
 /** Breathing room kept between the open size drawer and the viewport edge (px). */
 const VIEWPORT_MARGIN = 16;
 
-/** Smallest usable size drawer; below this it opens upward instead (px). */
-const MIN_MENU_HEIGHT = 160;
+/** Gap kept between the open size drawer and the popup's own edge (px). */
+const DRAWER_INSET = 8;
+
+/** Below this much room the drawer prefers to open upward instead (px). */
+const PREFERRED_MENU_HEIGHT = 160;
+
+/** Never shrink the drawer below roughly two rows (px). */
+const MIN_MENU_HEIGHT = 74;
 
 /** Tallest the size drawer gets, matching its CSS max-height of 16rem (px). */
 const MAX_MENU_HEIGHT = 256;
@@ -355,17 +361,26 @@ class GiftGuideComponent extends Component {
     trigger.setAttribute('aria-expanded', 'true');
     list.hidden = false;
 
-    // Fit the drawer to the space actually available, and open upward when
-    // there is more room above. Without this the last option can sit below the
-    // viewport, unreachable, because the list escapes the popup's bounds.
-    const { top, bottom } = trigger.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - bottom - VIEWPORT_MARGIN;
-    const spaceAbove = top - VIEWPORT_MARGIN;
-    const openUpward = spaceBelow < MIN_MENU_HEIGHT && spaceAbove > spaceBelow;
+    // Fit the drawer to the room actually available, and open upward when there
+    // is more of it above. Bounds are the popup's own box, not just the
+    // viewport, so the drawer stays inside the card rather than spilling past
+    // its edge; anything that does not fit is reached by scrolling the drawer.
+    const triggerRect = trigger.getBoundingClientRect();
+    const popup = this.#quickViews[index]?.getBoundingClientRect();
+
+    const floor = Math.min(popup?.bottom ?? Infinity, window.innerHeight - VIEWPORT_MARGIN);
+    const ceiling = Math.max(popup?.top ?? 0, VIEWPORT_MARGIN);
+
+    const spaceBelow = floor - triggerRect.bottom - DRAWER_INSET;
+    const spaceAbove = triggerRect.top - ceiling - DRAWER_INSET;
+    const openUpward = spaceBelow < PREFERRED_MENU_HEIGHT && spaceAbove > spaceBelow;
+
+    // The minimum can exceed the room available only if the card is
+    // pathologically short, where an unusably thin drawer would be worse.
+    const available = Math.max(MIN_MENU_HEIGHT, Math.floor(openUpward ? spaceAbove : spaceBelow));
 
     list.classList.toggle('gift-guide__size-list--up', openUpward);
-    const available = Math.floor(openUpward ? spaceAbove : spaceBelow);
-    list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, Math.max(MIN_MENU_HEIGHT, available))}px`;
+    list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, available)}px`;
 
     const options = this.#sizeOptions(index);
     const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
