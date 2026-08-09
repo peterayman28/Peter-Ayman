@@ -669,6 +669,10 @@
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 1rem;
+    /* Aligned to the store's content width so it does not stretch edge to edge
+       on a wide monitor. */
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
     padding: 0.75rem clamp(1rem, 3%, 4rem);
     background-color: var(--gg-paper);
   }
@@ -728,7 +732,9 @@
   .gift-guide__hero-copy {
     position: absolute;
     top: 52%;
-    inset-inline-start: clamp(1rem, 8%, 6rem);
+    /* Upper bound raised so the inset stays proportional on wide screens; at
+       6rem it collapsed to 4% of the hero and the copy hugged the edge. */
+    inset-inline-start: clamp(1rem, 8%, 12rem);
     z-index: 1;
     display: flex;
     flex-direction: column;
@@ -741,9 +747,10 @@
   .gift-guide__heading {
     margin: 0;
     font-family: var(--font-heading--family);
-    /* Sized to sit on one line: the old value overflowed its column and broke
-       "The Gift Guide" across two. */
-    font-size: clamp(1.75rem, 4vw, 5rem);
+    /* Sized to sit on one line. The upper bound is what keeps it there: the
+       copy column caps at 460px, and "The Gift Guide" needs roughly 6.8x the
+       font-size, so anything above 4rem wraps on wide screens. */
+    font-size: clamp(1.75rem, 4vw, 4rem);
     line-height: 1.05;
   }
 
@@ -793,7 +800,11 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--gg-gutter);
-    margin: 0;
+    /* Same content width as the top bar, so three cards stay a sensible size
+       instead of ballooning on a wide monitor. */
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
+    margin-block: 0;
     padding: clamp(2rem, 4vw, 5rem) clamp(1rem, 3%, 4rem);
     list-style: none;
   }
