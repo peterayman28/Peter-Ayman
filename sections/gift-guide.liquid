@@ -740,24 +740,29 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
-    width: min(34%, 460px);
+    /* Proportional, so the copy keeps its share of the hero as the screen
+       grows. A pixel cap here froze it at ~19% of a large hero. The max
+       matches 34% of the hero's own 2373px ceiling. */
+    width: 34%;
+    max-width: 807px;
     text-align: left;
   }
 
   .gift-guide__heading {
     margin: 0;
     font-family: var(--font-heading--family);
-    /* Sized to sit on one line. The upper bound is what keeps it there: the
-       copy column caps at 460px, and "The Gift Guide" needs roughly 6.8x the
-       font-size, so anything above 4rem wraps on wide screens. */
-    font-size: clamp(1.75rem, 4vw, 4rem);
+    /* Stays on one line at every width: the column is 34% of the hero and
+       "The Gift Guide" needs roughly 6.8x the font-size, so 4vw fills about
+       80% of it whatever the screen. The cap only binds past ~2800px, where
+       the hero itself has stopped growing. */
+    font-size: clamp(1.75rem, 4vw, 7rem);
     line-height: 1.05;
   }
 
   .gift-guide__subtext {
     /* Narrower than the heading above it, so the paragraph wraps sooner. */
     max-width: 88%;
-    font-size: clamp(0.8rem, 1vw, 1.25rem);
+    font-size: clamp(0.8rem, 1.1vw, 1.6rem);
     line-height: 1.55;
     color: var(--color-foreground-muted, var(--gg-ink));
   }
