@@ -253,13 +253,20 @@
               {%- endcomment -%}
               <div class="gift-guide__quickview-header">
                 <div class="gift-guide__quickview-media">
+                  {%- comment -%}
+                    Cropped to a 3:4 portrait rather than sized by width alone.
+                    The display box is narrow but tall, so a landscape source
+                    scaled to 120px wide has far too few vertical pixels once
+                    object-fit: cover enlarges it to cover — which is what made
+                    the thumbnail look soft. 360x480 is 3x the display width.
+                  {%- endcomment -%}
                   {%- if gg_product.featured_image -%}
                     {{
                       gg_product.featured_image
-                      | image_url: width: 280
+                      | image_url: width: 360, height: 480, crop: 'center'
                       | image_tag:
                         loading: 'lazy',
-                        widths: '120,240,280',
+                        widths: '120,180,240,360',
                         sizes: '120px',
                         alt: gg_product.title,
                         class: 'gift-guide__quickview-image'
@@ -859,12 +866,15 @@
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
+    /* Clears the close button, so it sits well above the image and title
+       rather than crowding them. */
+    padding-top: 2.75rem;
   }
 
   .gift-guide__quickview-close {
     position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
+    top: 0.5rem;
+    right: 0.5rem;
     z-index: 1;
   }
 
@@ -873,8 +883,6 @@
     /* Stretch, so the image column ends level with the text beside it. */
     align-items: stretch;
     gap: 0.75rem;
-    /* Keep the title clear of the close button. */
-    padding-right: 1.75rem;
   }
 
   .gift-guide__quickview-media {
@@ -1103,6 +1111,7 @@
     max-height: 16rem;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scroll-behavior: smooth;
     margin: 0;
     padding: 0;
     border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
