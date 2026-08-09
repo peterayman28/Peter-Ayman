@@ -1099,14 +1099,25 @@
        full XS–XL run; gift-guide.js narrows this to the space actually
        available so the list can never run off-screen. */
     max-height: 16rem;
+    /* Still scrolls — by wheel, trackpad, drag, or arrow keys moving focus —
+       but the scrollbar itself is hidden. scroll-behavior keeps those
+       focus-driven jumps animated rather than instant. */
     overflow-y: auto;
     overscroll-behavior: contain;
     scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     margin: 0;
     padding: 0;
     border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
     background-color: var(--gg-paper);
     list-style: none;
+  }
+
+  /* Chrome, Safari and Edge need the pseudo-element; the properties above
+     cover Firefox and legacy Edge. */
+  .gift-guide__size-list::-webkit-scrollbar {
+    display: none;
   }
 
   .gift-guide__size-list[hidden] {
