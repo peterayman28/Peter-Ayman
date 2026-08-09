@@ -187,8 +187,32 @@ class GiftGuideComponent extends Component {
     const swatch = event.target;
     if (!dialog || !(swatch instanceof HTMLElement)) return;
 
-    for (const option of dialog.querySelectorAll('[data-gift-guide-swatch]')) {
-      option.setAttribute('aria-pressed', String(option === swatch));
+    const options = /** @type {HTMLElement[]} */ ([...dialog.querySelectorAll('[data-gift-guide-swatch]')]);
+    const previous = options.findIndex((option) => option.getAttribute('aria-pressed') === 'true');
+    const next = options.indexOf(swatch);
+
+    if (next === -1 || next === previous) return;
+
+    const select = () => {
+      for (const option of options) option.setAttribute('aria-pressed', String(option === swatch));
+    };
+
+    if (previous === -1) {
+      // Nothing was selected, so there is no journey to animate: apply the fill
+      // immediately. Suppressing the transition needs the "none" to be in
+      // effect before the transform changes, hence the forced reflows.
+      for (const option of options) option.setAttribute('data-instant', '');
+      void swatch.offsetWidth;
+      select();
+      void swatch.offsetWidth;
+      for (const option of options) option.removeAttribute('data-instant');
+    } else {
+      // Moving between colours: the outgoing fill retreats and the incoming one
+      // grows from the facing edge, so the two read as a single movement.
+      const movingRight = next > previous;
+      options[previous]?.style.setProperty('--gg-fill-origin', movingRight ? 'right' : 'left');
+      swatch.style.setProperty('--gg-fill-origin', movingRight ? 'left' : 'right');
+      select();
     }
 
     this.#clearError(index);
