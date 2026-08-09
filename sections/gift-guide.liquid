@@ -151,13 +151,22 @@
           endif
 
           assign default_variant = gg_product.selected_or_first_available_variant
-          assign default_color = null
+
+          # Neither colour nor size starts selected. The shopper chooses both and
+          # add-to-cart validates on click; default_variant only supplies the
+          # opening price and the no-JS form fallback.
+          assign color_required_label = ''
+          assign size_required_label = ''
+
           if has_color
-            assign default_color = default_variant.options[color_index]
+            assign color_option_name = gg_product.options_with_values[color_index].name | downcase
+            assign color_required_label = 'Please select a ' | append: color_option_name
           endif
 
-          # Size deliberately starts unselected so the dropdown shows its
-          # placeholder; add-to-cart stays disabled until the shopper picks one.
+          if has_size
+            assign size_option_name = gg_product.options_with_values[size_index].name | downcase
+            assign size_required_label = 'Please select a ' | append: size_option_name
+          endif
         -%}
 
         <li class="gift-guide__cell">
@@ -247,8 +256,8 @@
                   {%- if gg_product.featured_image -%}
                     {{
                       gg_product.featured_image
-                      | image_url: width: 180
-                      | image_tag: loading: 'lazy', widths: '90,180', sizes: '90px', alt: gg_product.title
+                      | image_url: width: 280
+                      | image_tag: loading: 'lazy', widths: '120,240,280', sizes: '120px', alt: gg_product.title
                     }}
                   {%- endif -%}
                 </div>
@@ -282,12 +291,68 @@
                     {%- endcomment -%}
                     <div class="gift-guide__colors">
                       {%- for option_value in color_option.values -%}
+                        {%- liquid
+                          # Colour for the indicator bar. Prefer the merchant's
+                          # configured swatch; otherwise map the option value's
+                          # own name, falling back to a neutral grey so the CSS
+                          # value is always valid.
+                          assign color_key = option_value.name | downcase | strip
+                          assign bar_color = '#cccccc'
+
+                          case color_key
+                            when 'black'
+                              assign bar_color = '#000000'
+                            when 'white'
+                              assign bar_color = '#ffffff'
+                            when 'grey', 'gray', 'charcoal'
+                              assign bar_color = '#808080'
+                            when 'silver'
+                              assign bar_color = '#c0c0c0'
+                            when 'blue'
+                              assign bar_color = '#1d4ed8'
+                            when 'navy'
+                              assign bar_color = '#1e3a5f'
+                            when 'teal'
+                              assign bar_color = '#0d9488'
+                            when 'red'
+                              assign bar_color = '#dc2626'
+                            when 'burgundy', 'maroon'
+                              assign bar_color = '#7f1d1d'
+                            when 'pink'
+                              assign bar_color = '#ec4899'
+                            when 'orange'
+                              assign bar_color = '#f97316'
+                            when 'yellow'
+                              assign bar_color = '#facc15'
+                            when 'gold'
+                              assign bar_color = '#d4af37'
+                            when 'green'
+                              assign bar_color = '#16a34a'
+                            when 'olive'
+                              assign bar_color = '#556b2f'
+                            when 'purple'
+                              assign bar_color = '#7c3aed'
+                            when 'brown'
+                              assign bar_color = '#92400e'
+                            when 'tan', 'khaki'
+                              assign bar_color = '#c3b091'
+                            when 'beige'
+                              assign bar_color = '#e8dcc8'
+                            when 'cream', 'ivory'
+                              assign bar_color = '#fdf6e3'
+                          endcase
+
+                          if option_value.swatch.color
+                            assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
+                          endif
+                        -%}
                         <button
                           type="button"
                           class="gift-guide__color"
                           data-gift-guide-swatch
                           data-value="{{ option_value.name | escape }}"
-                          aria-pressed="{% if option_value.name == default_color %}true{% else %}false{% endif %}"
+                          aria-pressed="false"
+                          style="--gg-color-bar: {{ bar_color }};"
                           on:click="/selectColor?index={{ rendered_index }}"
                         >
                           {{ option_value.name }}
@@ -389,10 +454,24 @@
                     name="quantity"
                     value="1"
                   >
+
+                  {%- comment -%}
+                    Validation message for choices the shopper has not made yet.
+                  {%- endcomment -%}
+                  <p
+                    class="gift-guide__error"
+                    data-gift-guide-error
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                  ></p>
+
                   <button
                     type="submit"
                     class="gift-guide__btn gift-guide__btn--primary gift-guide__add"
                     data-gift-guide-add
+                    data-color-required-label="{{ color_required_label | escape }}"
+                    data-size-required-label="{{ size_required_label | escape }}"
                     data-default-label="{{ 'products.product.add_to_cart' | t }}"
                     data-added-label="{{ 'actions.added' | t }} &check;"
                     data-sold-out-label="{{ 'products.product.sold_out' | t }}"
@@ -451,7 +530,6 @@
   .gift-guide {
     --gg-ink: var(--color-foreground);
     --gg-paper: var(--color-background);
-    --gg-selected: #2f6bff;
     --gg-gutter: 2.5rem;
 
     display: block;
@@ -783,12 +861,15 @@
 
   .gift-guide__quickview-media {
     flex: none;
+    width: 120px;
+    height: 140px;
   }
 
+  /* Fill the box completely, cropping rather than stretching. */
   .gift-guide__quickview-media img {
     display: block;
-    width: 90px;
-    height: 90px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 
@@ -899,14 +980,17 @@
     transform: scaleX(1);
   }
 
-  /* Blue left-edge accent. Painted as ::after so it sits above the fill. */
-  .gift-guide__color[aria-pressed='true']::after {
+  /* Indicator bar showing the colour each option represents. Always visible,
+     and painted as ::after so it stays above the fill animation. The inset
+     hairline keeps pale colours (white, cream) distinguishable. */
+  .gift-guide__color::after {
     content: '';
     position: absolute;
     inset-block: 0;
     left: 0;
-    width: 3px;
-    background-color: var(--gg-selected);
+    width: 4px;
+    background-color: var(--gg-color-bar, transparent);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-foreground-rgb) / 15%);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -987,6 +1071,17 @@
 
   .gift-guide__form {
     margin-block-start: 0.25rem;
+  }
+
+  .gift-guide__error {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--color-error, #b3261e);
+  }
+
+  .gift-guide__error[hidden] {
+    display: none;
   }
 
   .gift-guide__add {
