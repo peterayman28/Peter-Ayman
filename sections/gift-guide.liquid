@@ -979,6 +979,23 @@
     transform: translate(-50%, -50%) scale(1);
   }
 
+  .gift-guide__trigger-icon--close {
+  display: none;
+}
+
+.gift-guide__quick-trigger[aria-expanded='true'] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.gift-guide__quick-trigger[aria-expanded='true'] .gift-guide__trigger-icon--plus {
+  display: none;
+}
+
+.gift-guide__quick-trigger[aria-expanded='true'] .gift-guide__trigger-icon--close {
+  display: flex;
+}
+
   @media (prefers-reduced-motion: reduce) {
     .gift-guide__quick-trigger {
       transition: none;
