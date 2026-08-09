@@ -240,12 +240,23 @@
               {{ 'product-apparel-1' | placeholder_svg_tag: 'gift-guide__thumb-image' }}
             {%- endif -%}
 
+            {%- comment -%}
+              Placed per product so the "+" can sit on the garment itself rather
+              than a fixed corner. Mirrors the theme's own hotspot settings.
+            {%- endcomment -%}
+            {%- liquid
+              assign x_key = 'product_' | append: position | append: '_x'
+              assign y_key = 'product_' | append: position | append: '_y'
+              assign hotspot_x = section.settings[x_key] | default: 50
+              assign hotspot_y = section.settings[y_key] | default: 50
+            -%}
             <button
               type="button"
               class="gift-guide__quick-trigger"
               data-gift-guide-trigger="{{ rendered_index }}"
               aria-haspopup="dialog"
               aria-label="{{ gg_product.title | escape }}"
+              style="left: {{ hotspot_x }}%; top: {{ hotspot_y }}%;"
               on:click="/openPreview?index={{ rendered_index }}"
             >
               <span aria-hidden="true">+</span>
@@ -931,8 +942,8 @@
      unreachable for anyone not using a mouse. */
   .gift-guide__quick-trigger {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+    /* left/top are set per product in the markup; the translate centres the
+       circle on that point, so the setting reads as "where the + sits". */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -947,7 +958,7 @@
     line-height: 1;
     cursor: pointer;
     opacity: 0;
-    transform: scale(0.9);
+    transform: translate(-50%, -50%) scale(0.9);
     transition: opacity 0.2s ease, transform 0.2s ease;
     box-shadow: 0 1px 4px rgb(0 0 0 / 18%);
   }
@@ -955,7 +966,7 @@
   .gift-guide__cell:hover .gift-guide__quick-trigger,
   .gift-guide__quick-trigger:focus-visible {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1501,9 +1512,49 @@
       "label": "Product 1"
     },
     {
+      "type": "range",
+      "id": "product_1_x",
+      "label": "Product 1 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_1_y",
+      "label": "Product 1 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
       "type": "product",
       "id": "product_2",
       "label": "Product 2"
+    },
+    {
+      "type": "range",
+      "id": "product_2_x",
+      "label": "Product 2 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_2_y",
+      "label": "Product 2 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
     },
     {
       "type": "product",
@@ -1511,9 +1562,49 @@
       "label": "Product 3"
     },
     {
+      "type": "range",
+      "id": "product_3_x",
+      "label": "Product 3 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_3_y",
+      "label": "Product 3 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
       "type": "product",
       "id": "product_4",
       "label": "Product 4"
+    },
+    {
+      "type": "range",
+      "id": "product_4_x",
+      "label": "Product 4 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_4_y",
+      "label": "Product 4 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
     },
     {
       "type": "product",
@@ -1521,9 +1612,49 @@
       "label": "Product 5"
     },
     {
+      "type": "range",
+      "id": "product_5_x",
+      "label": "Product 5 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_5_y",
+      "label": "Product 5 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
       "type": "product",
       "id": "product_6",
       "label": "Product 6"
+    },
+    {
+      "type": "range",
+      "id": "product_6_x",
+      "label": "Product 6 — plus horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "product_6_y",
+      "label": "Product 6 — plus vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
     }
   ],
   "presets": [
