@@ -638,10 +638,16 @@
     --gg-btn-hover-color: var(--gg-paper);
   }
 
-  .gift-guide__btn[aria-disabled='true'],
+  /* Dimming is for genuinely unavailable form controls only — the sold-out
+     Add to Cart button. A link with no URL configured yet must still render at
+     its true colour, or the accent reads as a washed-out yellow. */
   .gift-guide__btn:disabled {
     cursor: not-allowed;
     opacity: 0.55;
+  }
+
+  .gift-guide__btn[aria-disabled='true'] {
+    cursor: not-allowed;
   }
 
   .gift-guide__btn:disabled::before {
