@@ -1342,6 +1342,13 @@
     padding-inline: 1rem;
     font-size: 0.8rem;
   }
+
+  /* The success state carries its own check mark, so the arrow is redundant
+     while it shows. gift-guide.js adds this class on a successful add and
+     clears it after ~2s, restoring the arrow with the default label. */
+  .gift-guide__add--added .gift-guide__arrow {
+    display: none;
+  }
 {% endstylesheet %}
 
 {% schema %}
