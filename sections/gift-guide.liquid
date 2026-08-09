@@ -620,7 +620,7 @@
     align-items: center;
     justify-content: center;
     /* Wider separation between the label and the arrow. */
-    gap: 3.5em;
+    gap: 1.5em;
     /* Keeps the label and arrow on one line — "Choose Gift" was breaking in
        the top bar when the column got tight. */
     white-space: nowrap;
@@ -644,10 +644,8 @@
   .gift-guide__arrow {
     flex: none;
     display: inline-block;
-    /* 1.85 x 0.75 keeps the asset's 64:26 ratio, so mask-size: contain has no
-       slack to centre within. */
-    width: 1.85em;
-    height: 0.75em;
+    width: 2.4em;
+    height: 1em;
     background-color: currentColor;
     -webkit-mask-image: var(--gg-arrow);
     mask-image: var(--gg-arrow);
@@ -1007,7 +1005,7 @@
        which would both add a scrollbar here and clip the open size drawer. */
     overflow: visible;
     padding: 0;
-    border: 1px solid var(--gg-ink);
+    border: 0;
     background-color: var(--gg-paper);
     color: var(--gg-ink);
   }
@@ -1137,7 +1135,7 @@
     isolation: isolate;
     overflow: hidden;
     padding: 0.6rem 0.5rem;
-    border: 1px solid var(--gg-ink);
+    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
     background-color: var(--gg-paper);
     color: var(--gg-ink);
     font-family: inherit;
@@ -1216,7 +1214,7 @@
     align-items: stretch;
     width: 100%;
     padding: 0;
-    border: 1px solid var(--gg-ink);
+    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
     background-color: var(--gg-paper);
     color: var(--gg-ink);
     font-family: inherit;
@@ -1236,7 +1234,7 @@
     align-items: center;
     justify-content: center;
     padding-inline: 0.7rem;
-    border-left: 1px solid var(--gg-ink);
+    border-left: 1px solid rgb(var(--color-foreground-rgb) / 25%);
   }
 
   .gift-guide__size-chevron {
@@ -1251,11 +1249,14 @@
   }
 
   .gift-guide__size-list {
-    /* In normal flow rather than absolutely positioned: the popup grows to fit
-       it, so it can neither be cut off by the card's edge nor spill outside the
-       popup's border. The negative margin overlaps the trigger's border so the
-       two still read as one control. */
-    /* Roomy enough for a full XS-XL run; longer lists scroll inside. */
+    position: absolute;
+    inset-inline: 0;
+    /* Overlap the trigger's border so the two read as one control. */
+    top: calc(100% - 1px);
+    z-index: 2;
+    /* Scrolls within itself rather than growing the popup. Roomy enough for a
+       full XS–XL run; gift-guide.js narrows this to the space actually
+       available so the list can never run off-screen. */
     max-height: 16rem;
     /* Still scrolls — by wheel, trackpad, drag, or arrow keys moving focus —
        but the scrollbar itself is hidden. scroll-behavior keeps those
@@ -1265,11 +1266,9 @@
     scroll-behavior: smooth;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* Negative top margin overlaps the trigger's border so the two read as one
-       control, the way the absolute `top: calc(100% - 1px)` used to. */
-    margin: -1px 0 0;
+    margin: 0;
     padding: 0;
-    border: 1px solid var(--gg-ink);
+    border: 1px solid rgb(var(--color-foreground-rgb) / 25%);
     background-color: var(--gg-paper);
     list-style: none;
   }
