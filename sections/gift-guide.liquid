@@ -727,13 +727,16 @@
   /* Two real columns. minmax(0, 1fr) rather than a bare 1fr: the default
      min-width:auto lets a grid item refuse to shrink below its content, which
      is what pushes columns into each other as the window narrows. */
+  /* 38/62 split. 62% is not arbitrary: the bottom frame's canvas is 2374 wide
+     against the top frame's 3840, so at 2374/3840 = 62% of the hero it renders
+     its artwork at exactly the same scale as the full-width top frame. Any
+     padding or gap on this row would shrink that column and make the same
+     objects appear ~31% smaller across the seam, so the text column carries
+     its own padding instead. */
   .gift-guide__hero-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
     align-items: center;
-    gap: clamp(1.5rem, 3vw, 4rem);
-    padding-block: clamp(1rem, 2vw, 3rem);
-    padding-inline: clamp(1rem, 6%, 12rem);
   }
 
   .gift-guide__hero-aside {
@@ -751,17 +754,21 @@
     align-items: flex-start;
     gap: 1.25rem;
     min-width: 0;
+    /* Percentages here resolve against this column, which is 38% of the hero:
+       16% start and 8% end work out as 6% and 3% of the hero, leaving the text
+       29% of it — the same share as the reference. */
+    padding-block: clamp(1rem, 2vw, 3rem);
+    padding-inline: clamp(1rem, 16%, 12rem) clamp(0.5rem, 8%, 4rem);
     text-align: left;
   }
 
   .gift-guide__heading {
     margin: 0;
     font-family: var(--font-heading--family);
-    /* Stays on one line at every width: the column is 34% of the hero and
-       "The Gift Guide" needs roughly 6.8x the font-size, so 4vw fills about
-       80% of it whatever the screen. The cap only binds past ~2800px, where
-       the hero itself has stopped growing. */
-    font-size: clamp(1.75rem, 4vw, 7rem);
+    /* Stays on one line at every width. The text column is 29% of the hero and
+       "The Gift Guide" needs roughly 6.8x the font-size, so 3.6vw fills about
+       85% of it whatever the screen. */
+    font-size: clamp(1.75rem, 3.6vw, 5.5rem);
     line-height: 1.05;
   }
 
