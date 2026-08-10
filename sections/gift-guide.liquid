@@ -1715,12 +1715,24 @@
       padding-block: 1.4rem var(--gg-art-space-end);
     }
 
-    /* No crop rule here on purpose. Earlier revisions forced an aspect-ratio
-       with object-fit: cover, because the only illustration available was the
-       desktop frame and it had to be trimmed to look right on a phone. The
-       mobile source is now drawn for this width, so it is left at its own
-       686x264 — an aspect-ratio, height or overflow rule would only start
-       cutting the sides off it again. */
+    /* Zoomed and centre-cropped rather than scaled to fit. The mobile source is
+       2.6:1 but the reference frames it at 3:2, so `cover` scales the artwork
+       up until the box is filled by height, trimming ~21% off each side and
+       leaving the middle — which is the part the Shop Now button sits over.
+       Only the sides are lost: the box is relatively taller than the source, so
+       cover scales by height and the full height of the artwork still shows.
+
+       The ratio is cross-checked two ways rather than eyeballed. The button
+       measures 51.4% of the frame's width in Screenshot_7.png and 51.5% in
+       mobiledesign.png, so the green guides in Screenshot_7 are the phone
+       frame; scaling between the two by that frame width then puts the
+       illustration at 181px against a 272px frame, i.e. 1.503. */
+    .gift-guide__hero-top .gift-guide__hero-frame {
+      aspect-ratio: 3 / 2;
+      height: auto;
+      object-fit: cover;
+      object-position: center;
+    }
 
     /* Lifted over the foot of the illustration, as in the reference.
 
@@ -1739,11 +1751,11 @@
       position: absolute;
       z-index: 1;
       /* In the reference the button's foot clears the artwork's bottom by 20 of
-         its 151px of illustration, i.e. 13%. The mobile source is 686x264, so
-         its height is 38.5vw and 13% of that is ~5vw. The padding beneath the
-         artwork is added on top because `bottom` measures from the hero's edge,
-         which sits below that padding rather than on the artwork. */
-      bottom: calc(var(--gg-art-space-end) + 5vw);
+         its 151px of illustration, i.e. 13%. The crop box above is 3:2, so the
+         illustration is 66.7vw tall and 13% of that is ~8.7vw. The padding
+         beneath the artwork is added on top because `bottom` measures from the
+         hero's edge, which sits below that padding rather than on the artwork. */
+      bottom: calc(var(--gg-art-space-end) + 8.7vw);
       left: 50%;
       transform: translateX(-50%);
     }
