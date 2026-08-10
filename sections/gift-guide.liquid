@@ -1697,13 +1697,16 @@
       padding-block: 1.4rem var(--gg-art-space-end);
     }
 
-    /* The illustration is deliberately left to the `width: 100%; height: auto`
-       it already has, so the whole 3840x1065 canvas renders at its own
-       proportions — roughly 104px tall at a 375px viewport. An earlier revision
-       cropped it to a taller box with object-fit to match the reference's
-       zoomed look, but cover trims the sides of a canvas this wide, which is
-       what was cutting the artwork off. Nothing replaces it here on purpose:
-       any aspect-ratio, height or overflow rule would crop it again. */
+    /* Cropped rather than scaled down: fitting the whole 3840x1065 canvas into
+       a phone width leaves every object in the artwork too small to read. The
+       ratio is the reference's own — its illustration measures 227x151, so 3:2
+       reproduces the same crop at the same scale. */
+    .gift-guide__hero-top .gift-guide__hero-frame {
+      aspect-ratio: 3 / 2;
+      height: auto;
+      object-fit: cover;
+      object-position: center;
+    }
 
     /* Lifted over the foot of the illustration, as in the reference.
 
@@ -1721,20 +1724,14 @@
     .gift-guide__hero-button {
       position: absolute;
       z-index: 1;
-      /* Uncropped, the illustration is 1065/3840 of its width — 27.7vw — so the
-         offsets that were tuned against the taller cropped box no longer hold.
-         This puts the button's centre at 65% of the artwork's height, i.e. 35%
-         of 27.7vw up from its foot, which places the button's top edge at ~43%
-         at a 375px viewport.
-
-         The vertical half of the translate is what makes `bottom` address the
-         button's centre rather than its foot, so the position no longer shifts
-         when the label wraps or the font size changes. The padding beneath the
-         artwork is added on because `bottom` measures from the hero's edge,
-         which sits below that padding rather than on the artwork. */
-      bottom: calc(var(--gg-art-space-end) + 9.71vw);
+      /* In the reference the button's foot clears the artwork's bottom by 20 of
+         its 151px of illustration, i.e. 13%. The illustration is 3:2, so its
+         height is 66.7vw and 13% of that is ~8.7vw. The padding beneath the
+         artwork is added on top because `bottom` measures from the hero's edge,
+         which now sits below that padding rather than on the artwork. */
+      bottom: calc(var(--gg-art-space-end) + 8.7vw);
       left: 50%;
-      transform: translate(-50%, 50%);
+      transform: translateX(-50%);
     }
 
     /* ---------- Banner strip ---------- */
