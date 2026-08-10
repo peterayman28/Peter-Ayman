@@ -171,8 +171,26 @@
         <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
       {%- endif -%}
 
+      {%- comment -%}
+        Two subtexts, one per breakpoint, rather than one string that has to
+        read well at both widths — mobile shows a single condensed line. The
+        modifier is only added when a mobile string exists, so with the field
+        left blank the full subtext keeps showing at every width.
+      {%- endcomment -%}
       {%- if section.settings.subtext != blank -%}
-        <div class="gift-guide__subtext rte">{{ section.settings.subtext }}</div>
+        <div
+          class="gift-guide__subtext rte
+            {%- if section.settings.mobile_subtext != blank %} gift-guide__subtext--desktop{% endif -%}
+          "
+        >
+          {{ section.settings.subtext }}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.mobile_subtext != blank -%}
+        <div class="gift-guide__subtext gift-guide__subtext--mobile rte">
+          {{ section.settings.mobile_subtext }}
+        </div>
       {%- endif -%}
 
       {%- if section.settings.hero_button_label != blank -%}
@@ -929,6 +947,11 @@
     color: var(--color-foreground-muted, var(--gg-ink));
   }
 
+  /* Swapped for the full subtext by the mobile block at the foot of this file. */
+  .gift-guide__subtext--mobile {
+    display: none;
+  }
+
   .gift-guide__subtext > :first-child {
     margin-block-start: 0;
   }
@@ -1622,9 +1645,21 @@
       text-align: center;
     }
 
+    /* The condensed line takes over here; the full paragraph is set aside. */
+    .gift-guide__subtext--desktop {
+      display: none;
+    }
+
+    .gift-guide__subtext--mobile {
+      display: block;
+    }
+
+    /* Sits well down the hero rather than tight under the copy — the condensed
+       subtext above it is a single line, so the gap is what keeps the two from
+       reading as one block. */
     .gift-guide__hero-top {
       order: 3;
-      margin-block-start: 1.5rem;
+      margin-block-start: 3rem;
     }
 
     /* Cropped rather than scaled down. Fitting the whole 3840x1065 canvas into
@@ -1637,25 +1672,38 @@
       object-position: center;
     }
 
-    /* Lifted over the foot of the illustration, as in the reference. A
-       percentage, not a fixed value: margin percentages resolve against the
-       container's width, and the illustration's height is a fixed ratio of that
-       same width, so the overlap holds at every phone size.
+    /* Lifted over the foot of the illustration, as in the reference.
 
-       position/z-index are required, not decorative — the illustration is an
-       inline-level replaced element, which paints in a later step than an
-       in-flow block box, so without a stacking context of its own the button
-       would end up underneath it. */
+       Taken out of flow rather than pulled up with a negative margin, which is
+       the one thing that cannot work here: a column flex container sizes itself
+       to the sum of its items' outer heights, so a negative margin would shorten
+       the hero by the amount of the overlap and the banner below would ride up
+       over the bottom of the artwork. Out of flow, the illustration stays the
+       last in-flow item, so the hero still ends exactly at its bottom edge —
+       which is also what makes `bottom` here measure from that edge.
+
+       z-index is load-bearing, not decorative: the illustration is an
+       inline-level replaced element and paints in a later step than an in-flow
+       block box, so the button would otherwise sit underneath it. */
     .gift-guide__hero-button {
-      position: relative;
+      position: absolute;
       z-index: 1;
-      order: 4;
-      align-self: center;
-      margin-block-start: -19%;
+      bottom: 6vw;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
-    /* ---------- Banner strip ---------- *
-     * Unchanged — the text simply wraps in the narrower column. */
+    /* ---------- Banner strip ---------- */
+
+    /* Reads as the foot of the hero rather than a band of its own: it takes the
+       same background the illustration sits on, and hairlines above and below
+       do the separating that the grey did on desktop. The text itself is
+       untouched and simply wraps in the narrower column. */
+    .gift-guide__banner {
+      padding-block: 0.9rem;
+      border-block: 1px solid rgb(var(--color-foreground-rgb) / 15%);
+      background-color: var(--gg-paper);
+    }
 
     /* ---------- Product grid ---------- */
 
@@ -1764,6 +1812,13 @@
       "id": "subtext",
       "label": "Subtext",
       "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "mobile_subtext",
+      "label": "Subtext (mobile)",
+      "info": "Shown in place of the subtext on small screens. Leave blank to use the same subtext at every width.",
+      "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination.</p>"
     },
     {
       "type": "text",
