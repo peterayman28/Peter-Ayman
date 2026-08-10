@@ -47,6 +47,8 @@ const MAX_MENU_HEIGHT = 256;
  * @typedef {object} GiftGuideRefs
  * @property {HTMLElement[]} [previews] - Stage 1 preview cards, in grid order.
  * @property {HTMLDialogElement[]} [quickViews] - Stage 2 dialogs, in grid order.
+ * @property {HTMLElement} [menuToggle] - Mobile hamburger button, if the top bar is shown.
+ * @property {HTMLElement} [menuPanel] - Mobile dropdown panel, if the top bar is shown.
  *
  * @extends {Component<GiftGuideRefs>}
  */
@@ -110,6 +112,33 @@ class GiftGuideComponent extends Component {
   /** @returns {HTMLDialogElement[]} The stage 2 quick view dialogs. */
   get #quickViews() {
     return this.refs.quickViews ?? [];
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Mobile menu — the hamburger dropdown in the top bar
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Expands or collapses the mobile dropdown holding the tagline and the
+   * Choose Gift button.
+   *
+   * The panel is only ever a panel below the mobile breakpoint; above it the
+   * stylesheet gives it `display: contents`, which makes `hidden` inert, so
+   * this state costs nothing on desktop and needs no resize handling.
+   *
+   * Both refs are absent when the merchant has hidden the top bar, or left the
+   * tagline and button blank, hence the guard.
+   */
+  toggleMobileMenu() {
+    const { menuToggle, menuPanel } = this.refs;
+    if (!menuToggle || !menuPanel) return;
+
+    const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+
+    // aria-expanded is the single source of truth, as it is for the product
+    // "+" triggers: the CSS reads it to swap the hamburger for the close icon.
+    menuToggle.setAttribute('aria-expanded', String(!expanded));
+    menuPanel.hidden = expanded;
   }
 
   /* ------------------------------------------------------------------ *
