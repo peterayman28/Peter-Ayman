@@ -222,10 +222,29 @@
     </div>
   </div>
 
-  {%- comment -%} ---------- Banner strip ---------- {%- endcomment -%}
-  {%- if section.settings.banner_text != blank -%}
+  {%- comment -%}
+    ---------- Banner strip ----------
+    One string per breakpoint, on the same pattern as the hero subtext: the
+    modifier is only applied when a mobile string exists, so leaving that field
+    blank keeps a single banner showing at every width.
+  {%- endcomment -%}
+  {%- if section.settings.banner_text != blank or section.settings.banner_text_mobile != blank -%}
     <div class="gift-guide__banner">
-      <p class="gift-guide__banner-text">{{ section.settings.banner_text }}</p>
+      {%- if section.settings.banner_text != blank -%}
+        <p
+          class="gift-guide__banner-text
+            {%- if section.settings.banner_text_mobile != blank %} gift-guide__banner-text--desktop{% endif -%}
+          "
+        >
+          {{ section.settings.banner_text }}
+        </p>
+      {%- endif -%}
+
+      {%- if section.settings.banner_text_mobile != blank -%}
+        <p class="gift-guide__banner-text gift-guide__banner-text--mobile">
+          {{ section.settings.banner_text_mobile }}
+        </p>
+      {%- endif -%}
     </div>
   {%- endif -%}
 
@@ -984,6 +1003,11 @@
     text-transform: uppercase;
   }
 
+  /* Swapped for the desktop string by the mobile block at the foot of this file. */
+  .gift-guide__banner-text--mobile {
+    display: none;
+  }
+
   /* ---------- Product grid ---------- */
 
   /* Holds the heading and the grid on the same content width, so the heading
@@ -1598,8 +1622,13 @@
       font-size: 0.875rem;
     }
 
+    /* Inset, not full-bleed. Its natural width is already what the reference
+       shows — hamburger.png puts the button at 184 of 295px, inset ~19% either
+       side, which lands within a few pixels of what the label plus the button's
+       own 2.5em padding comes to — so the panel's `align-items: center` does
+       the centring and no width is set at all. */
     .gift-guide__choose-gift {
-      width: 100%;
+      width: auto;
     }
 
     /* ---------- Hero ---------- */
@@ -1613,6 +1642,10 @@
     .gift-guide__hero {
       display: flex;
       flex-direction: column;
+      /* Shared by the illustration's bottom padding and the button's offset
+         further down, which are measured from the same edge and would drift
+         apart if each carried its own copy of the number. */
+      --gg-art-space-end: 1.15rem;
     }
 
     .gift-guide__hero-row,
@@ -1654,19 +1687,22 @@
       display: block;
     }
 
-    /* Sits well down the hero rather than tight under the copy — the condensed
-       subtext above it is a single line, so the gap is what keeps the two from
-       reading as one block. */
+    /* Measured off mobiledesign.png: at its 227px width the artwork clears the
+       subtext above by 16px and the banner rule below by 11px, which scale to
+       ~26px and ~18px at a 375px viewport. The start value is set a little
+       under 26px because the subtext's line-height already leaves roughly 4px
+       of leading beneath its last line. */
     .gift-guide__hero-top {
       order: 3;
-      margin-block-start: 3rem;
+      padding-block: 1.4rem var(--gg-art-space-end);
     }
 
-    /* Cropped rather than scaled down. Fitting the whole 3840x1065 canvas into
-       a phone width leaves every object in the artwork too small to read, so a
-       16/9 box with object-fit shows the middle of it at a legible size. */
+    /* Cropped rather than scaled down: fitting the whole 3840x1065 canvas into
+       a phone width leaves every object in the artwork too small to read. The
+       ratio is the reference's own — its illustration measures 227x151, so 3:2
+       reproduces the same crop at the same scale. */
     .gift-guide__hero-top .gift-guide__hero-frame {
-      aspect-ratio: 16 / 9;
+      aspect-ratio: 3 / 2;
       height: auto;
       object-fit: cover;
       object-position: center;
@@ -1688,7 +1724,12 @@
     .gift-guide__hero-button {
       position: absolute;
       z-index: 1;
-      bottom: 6vw;
+      /* In the reference the button's foot clears the artwork's bottom by 20 of
+         its 151px of illustration, i.e. 13%. The illustration is 3:2, so its
+         height is 66.7vw and 13% of that is ~8.7vw. The padding beneath the
+         artwork is added on top because `bottom` measures from the hero's edge,
+         which now sits below that padding rather than on the artwork. */
+      bottom: calc(var(--gg-art-space-end) + 8.7vw);
       left: 50%;
       transform: translateX(-50%);
     }
@@ -1703,6 +1744,15 @@
       padding-block: 0.9rem;
       border-block: 1px solid rgb(var(--color-foreground-rgb) / 15%);
       background-color: var(--gg-paper);
+    }
+
+    /* The short string takes over here; the long one is set aside. */
+    .gift-guide__banner-text--desktop {
+      display: none;
+    }
+
+    .gift-guide__banner-text--mobile {
+      display: block;
     }
 
     /* ---------- Product grid ---------- */
@@ -1863,6 +1913,13 @@
       "id": "banner_text",
       "label": "Banner text",
       "default": "Sustainable, ethically made clothes in sizes XXS to 6XL"
+    },
+    {
+      "type": "text",
+      "id": "banner_text_mobile",
+      "label": "Banner text (mobile)",
+      "info": "Shown in place of the banner text on small screens. Leave blank to use the same text at every width.",
+      "default": "Sustainable, ethically made activewear"
     },
     {
       "type": "text",
