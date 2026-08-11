@@ -914,17 +914,7 @@
   /* ---------- Hero ---------- */
 
   .gift-guide__hero {
-    /* How far the bottom artwork is pulled over the copy column. The copy
-       reserves the same amount as padding so text never lands under the
-       artwork's opaque background.
-
-       Measured against the hero's own width, not the viewport: the hero stops
-       growing at --page-width, so a plain vw here kept sliding the artwork
-       further left on screens wider than that while the section stayed put.
-       7.43% of 1400px is the original 6.5rem, so the cap is now reached at
-       exactly the page width and holds steady on every larger screen. */
-    --gg-hero-overlap: clamp(2rem, calc(min(100vw, var(--page-width, 1400px)) * 0.0743), 6.5rem);
-
+    --gg-hero-overlap: clamp(2rem, 5vw, 6.5rem);
     position: relative;
     width: 100%;
     max-width: var(--page-width, 1600px);
@@ -950,14 +940,10 @@
 
   .gift-guide__hero-aside {
     display: flex;
-    align-self: stretch;
     min-width: 0;
     margin-left: calc(var(--gg-hero-overlap) * -1);
   }
 
-  /* As the columns narrow the artwork gets shorter than the copy, which left a
-     white seam between it and the top frame. Filling the row height keeps the
-     two frames flush; it only crops once the copy is the taller of the two. */
   .gift-guide__hero-aside .gift-guide__hero-frame {
     height: 100%;
     object-fit: cover;
@@ -979,8 +965,6 @@
 
   .gift-guide__heading {
     margin: 0;
-    /* em, not rem, so the optical pull tracks the fluid font size instead of
-       growing proportionally larger as the heading shrinks. */
     margin-top: -0.35em;
     font-family: 'Jost', sans-serif;
     font-weight: 500;
@@ -992,14 +976,8 @@
   }
 
   .gift-guide__subtext {
-    /* Measure taken from design-reference/text.png: the copy wraps to three
-       lines at ~29em. An em measure holds those wrap points at any font size,
-       unlike a % of the column. min() lets it shrink with narrow columns.
 
-       The size is capped so 29em actually fits: at --page-width the copy
-       column is 619px, leaving 453px once the left padding and the artwork
-       overlap are taken out. 29em only fits that at <=15px. */
-    max-width: min(29em, 100%);
+    max-width: min(29em, 87%);
     margin-top: clamp(1rem, 2vw, 2rem);
     font-family: 'Jost', sans-serif;
     font-weight: 400;
@@ -1593,7 +1571,7 @@
       align-items: center;
       justify-content: center;
       padding: 0.85rem 1rem;
-      background-color: var(--gg-paper);
+      background-color: #F7F7F7;
     }
 
     .gift-guide__menu-toggle {
@@ -1637,6 +1615,7 @@
       align-items: center;
       gap: 1rem;
       padding: 1.25rem 1rem;
+      background: #F2F2F2;
     }
 
     .gift-guide__topbar-panel[hidden] {
@@ -1716,7 +1695,7 @@
     .gift-guide__banner {
       padding-block: 0.9rem;
       border-block: 1px solid rgb(var(--color-foreground-rgb) / 15%);
-      background-color: var(--gg-paper);
+      background-color: #f5f5f5;
     }
 
     .gift-guide__banner-text--desktop {
@@ -1724,6 +1703,7 @@
     }
 
     .gift-guide__banner-text--mobile {
+      font-size: 0.8rem;
       display: block;
     }
 
