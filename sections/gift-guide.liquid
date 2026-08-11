@@ -130,7 +130,7 @@
     <div class="gift-guide__hero-top">
       <picture>
         <source
-          media="(max-width: 749px)"
+          media="(max-width: 1023px)"
           srcset="{{ 'hero-background-mobile.svg' | asset_url }}"
           width="686"
           height="264"
@@ -1532,73 +1532,9 @@
     display: none;
   }
 
-  /* ---------- Tablet / small laptop ---------- */
+  /* ---------- Tablet and below: the mobile layout runs up to 1023px ---------- */
 
-  @media screen and (min-width: 750px) and (max-width: 1023px) {
-    /* The two-column hero has no room left: stack the copy over the artwork
-       and drop the overlap entirely. */
-
-    .gift-guide__hero {
-      --gg-hero-overlap: 0px;
-    }
-
-    .gift-guide__hero-row {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .gift-guide__hero-copy {
-      align-items: center;
-      gap: 0.75rem;
-      padding-block: clamp(1.5rem, 4vw, 2.5rem) 0;
-      padding-inline: clamp(1.25rem, 6%, 4rem);
-      text-align: center;
-    }
-
-    .gift-guide__heading {
-      margin-top: 0;
-      font-size: clamp(2rem, 5.5vw, 3.25rem);
-      white-space: normal;
-    }
-
-    .gift-guide__subtext {
-      max-width: 60ch;
-      margin-top: 1rem;
-      font-size: 1.0625rem;
-    }
-
-    .gift-guide__btn.gift-guide__hero-button {
-      margin-top: 1.25rem;
-      padding: 1em 2.5em;
-    }
-
-    /* ---------- Top bar ---------- */
-
-    .gift-guide__topbar {
-      gap: 0.75rem;
-      padding-inline: 1.25rem;
-    }
-
-    .gift-guide__topbar-brand {
-      font-size: 1.5rem;
-    }
-
-    .gift-guide__topbar-tagline {
-      font-size: 0.875rem;
-    }
-
-    .gift-guide__btn.gift-guide__choose-gift {
-      padding: 0.85em 1.4em;
-      font-size: 0.875rem;
-    }
-
-    /* ---------- Product grid ---------- */
-
-    .gift-guide__products-heading {
-      font-size: clamp(1.5rem, 3.5vw, 2.25rem);
-    }
-  }
-
-  @media screen and (max-width: 749px) {
+  @media screen and (max-width: 1023px) {
     /* ---------- Top bar: hamburger and dropdown panel ---------- */
 
     .gift-guide__topbar {
