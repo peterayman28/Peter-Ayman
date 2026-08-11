@@ -52,6 +52,7 @@
                 <path d="M0 1H18M0 6H18M0 11H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               </svg>
             </span>
+
             <span class="gift-guide__menu-icon gift-guide__menu-icon--close" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -65,7 +66,11 @@
             {{
               settings.logo
               | image_url: width: 300
-              | image_tag: widths: '150,300', sizes: '150px', alt: shop.name, class: 'gift-guide__topbar-logo'
+              | image_tag:
+                widths: '150,300',
+                sizes: '150px',
+                alt: shop.name,
+                class: 'gift-guide__topbar-logo'
             }}
           {%- else -%}
             {{ section.settings.brand_name | default: shop.name }}
@@ -80,7 +85,9 @@
         hidden
       >
         {%- if section.settings.header_tagline != blank -%}
-          <p class="gift-guide__topbar-tagline">{{ section.settings.header_tagline }}</p>
+          <p class="gift-guide__topbar-tagline">
+            {{ section.settings.header_tagline }}
+          </p>
         {%- endif -%}
 
         {%- if section.settings.choose_gift_label != blank -%}
@@ -102,7 +109,8 @@
   {%- endif -%}
 
   <div class="gift-guide__hero">
-      <div class="gift-guide__hero-top">
+
+    <div class="gift-guide__hero-top">
       <picture>
         <source
           media="(max-width: 749px)"
@@ -110,6 +118,7 @@
           width="686"
           height="264"
         >
+
         <img
           src="{{ 'hero-frame-top.svg' | asset_url }}"
           alt=""
@@ -123,41 +132,46 @@
     </div>
 
     <div class="gift-guide__hero-row">
+
       <div class="gift-guide__hero-copy">
-      {%- if section.settings.heading != blank -%}
-        <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
-      {%- endif -%}
 
-      {%- if section.settings.subtext != blank -%}
-        <div
-          class="gift-guide__subtext rte
-            {%- if section.settings.mobile_subtext != blank %} gift-guide__subtext--desktop{% endif -%}
-          "
-        >
-          {{ section.settings.subtext }}
-        </div>
-      {%- endif -%}
-
-      {%- if section.settings.mobile_subtext != blank -%}
-        <div class="gift-guide__subtext gift-guide__subtext--mobile rte">
-          {{ section.settings.mobile_subtext }}
-        </div>
-      {%- endif -%}
-
-      {%- if section.settings.hero_button_label != blank -%}
-        <a
-          class="gift-guide__btn gift-guide__btn--primary gift-guide__hero-button"
-          {% if section.settings.hero_button_link != blank %}
-            href="{{ section.settings.hero_button_link }}"
-          {% else %}
-            role="link"
-            aria-disabled="true"
-          {% endif %}
-        >
-          {{ section.settings.hero_button_label }}
-          <span class="gift-guide__arrow" aria-hidden="true"></span>
-        </a>
+        {%- if section.settings.heading != blank -%}
+          <h2 class="gift-guide__heading">
+            {{ section.settings.heading }}
+          </h2>
         {%- endif -%}
+
+        {%- if section.settings.subtext != blank -%}
+          <div
+            class="gift-guide__subtext rte
+              {%- if section.settings.mobile_subtext != blank %} gift-guide__subtext--desktop{% endif -%}
+            "
+          >
+            {{ section.settings.subtext }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.mobile_subtext != blank -%}
+          <div class="gift-guide__subtext gift-guide__subtext--mobile rte">
+            {{ section.settings.mobile_subtext }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.hero_button_label != blank -%}
+          <a
+            class="gift-guide__btn gift-guide__btn--primary gift-guide__hero-button"
+            {% if section.settings.hero_button_link != blank %}
+              href="{{ section.settings.hero_button_link }}"
+            {% else %}
+              role="link"
+              aria-disabled="true"
+            {% endif %}
+          >
+            {{ section.settings.hero_button_label }}
+            <span class="gift-guide__arrow" aria-hidden="true"></span>
+          </a>
+        {%- endif -%}
+
       </div>
 
       <div class="gift-guide__hero-aside">
@@ -170,10 +184,14 @@
           loading="eager"
         >
       </div>
+
     </div>
+
+  </div>
 
   {%- if section.settings.banner_text != blank or section.settings.banner_text_mobile != blank -%}
     <div class="gift-guide__banner">
+
       {%- if section.settings.banner_text != blank -%}
         <p
           class="gift-guide__banner-text
@@ -189,419 +207,524 @@
           {{ section.settings.banner_text_mobile }}
         </p>
       {%- endif -%}
+
     </div>
   {%- endif -%}
 
   {%- comment -%} ---------- Product grid ---------- {%- endcomment -%}
+
   <div class="gift-guide__products">
+
     {%- if section.settings.products_heading != blank -%}
-      <h3 class="gift-guide__products-heading">{{ section.settings.products_heading }}</h3>
+      <h3 class="gift-guide__products-heading">
+        {{ section.settings.products_heading }}
+      </h3>
     {%- endif -%}
 
     <ul
       class="gift-guide__grid"
       role="list"
     >
-    {%- for position in (1..6) -%}
-      {%- liquid
-        assign setting_key = 'product_' | append: position
-        assign gg_product = section.settings[setting_key]
 
-        # Fall back to the handle for this position when no product is picked.
-        if gg_product == blank
-          assign fallback_handle = fallback_handles[forloop.index0]
-          assign gg_product = all_products[fallback_handle]
-        endif
-      -%}
+      {%- for position in (1..6) -%}
 
-      {%- if gg_product != blank -%}
         {%- liquid
-          assign color_index = -1
-          assign size_index = -1
+          assign setting_key = 'product_' | append: position
+          assign gg_product = section.settings[setting_key]
 
-          for product_option in gg_product.options_with_values
-            assign option_name = product_option.name | downcase
-            if option_name == 'color' or option_name == 'colour'
-              assign color_index = forloop.index0
-            elsif option_name == 'size'
-              assign size_index = forloop.index0
-            endif
-          endfor
-
-          assign has_color = false
-          assign has_size = false
-          if color_index >= 0
-            assign has_color = true
-          endif
-          if size_index >= 0
-            assign has_size = true
-          endif
-
-          assign default_variant = gg_product.selected_or_first_available_variant
-          assign color_required_label = ''
-          assign size_required_label = ''
-
-          if has_color
-            assign color_option_name = gg_product.options_with_values[color_index].name | downcase
-            assign color_required_label = 'Please select a ' | append: color_option_name
-          endif
-
-          if has_size
-            assign size_option_name = gg_product.options_with_values[size_index].name | downcase
-            assign size_required_label = 'Please select a ' | append: size_option_name
+          # Fall back to the handle for this position when no product is picked.
+          if gg_product == blank
+            assign fallback_handle = fallback_handles[forloop.index0]
+            assign gg_product = all_products[fallback_handle]
           endif
         -%}
 
-        <li class="gift-guide__cell">
-          <div class="gift-guide__thumb">
-            {%- if gg_product.featured_image -%}
-              {{
-                gg_product.featured_image
-                | image_url: width: 900
-                | image_tag:
-                  loading: 'lazy',
-                  widths: '300,450,600,900',
-                  sizes: '(min-width: 990px) 30vw, 90vw',
-                  alt: gg_product.title,
-                  class: 'gift-guide__thumb-image'
-              }}
-            {%- else -%}
-              {{ 'product-apparel-1' | placeholder_svg_tag: 'gift-guide__thumb-image' }}
-            {%- endif -%}
+        {%- if gg_product != blank -%}
 
-            {%- liquid
-              assign x_key = 'product_' | append: position | append: '_x'
-              assign y_key = 'product_' | append: position | append: '_y'
-              assign hotspot_x = section.settings[x_key] | default: 50
-              assign hotspot_y = section.settings[y_key] | default: 50
-            -%}
-            <button
-            type="button"
-            class="gift-guide__quick-trigger"
-            data-gift-guide-trigger="{{ rendered_index }}"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            aria-label="{{ gg_product.title | escape }}"
-            style="left: {{ hotspot_x }}%; top: {{ hotspot_y }}%;"
-            on:click="/togglePreview?index={{ rendered_index }}"
-            >
-            <span class="gift-guide__trigger-icon gift-guide__trigger-icon--plus" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 0V14M0 7H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="gift-guide__trigger-icon gift-guide__trigger-icon--close" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </span>
-            </button>
-          </div>
+          {%- liquid
+            assign color_index = -1
+            assign size_index = -1
 
-          {%- comment -%} ---------- Stage 1: preview over the image ---------- {%- endcomment -%}
-          <div
-            class="gift-guide__preview"
-            ref="previews[]"
-            hidden
-          >
-            <button
-              type="button"
-              class="gift-guide__preview-card"
-              data-gift-guide-expand
-              on:click="/openQuickView?index={{ rendered_index }}"
-            >
+            for product_option in gg_product.options_with_values
+              assign option_name = product_option.name | downcase
+
+              if option_name == 'color' or option_name == 'colour'
+                assign color_index = forloop.index0
+              elsif option_name == 'size'
+                assign size_index = forloop.index0
+              endif
+            endfor
+
+            assign has_color = false
+            assign has_size = false
+
+            if color_index >= 0
+              assign has_color = true
+            endif
+
+            if size_index >= 0
+              assign has_size = true
+            endif
+
+            assign default_variant = gg_product.selected_or_first_available_variant
+            assign color_required_label = ''
+            assign size_required_label = ''
+
+            if has_color
+              assign color_option_name = gg_product.options_with_values[color_index].name | downcase
+              assign color_required_label = 'Please select a ' | append: color_option_name
+            endif
+
+            if has_size
+              assign size_option_name = gg_product.options_with_values[size_index].name | downcase
+              assign size_required_label = 'Please select a ' | append: size_option_name
+            endif
+          -%}
+
+          <li class="gift-guide__cell">
+
+            <div class="gift-guide__thumb">
+
               {%- if gg_product.featured_image -%}
                 {{
                   gg_product.featured_image
-                  | image_url: width: 200
-                  | image_tag: loading: 'lazy', widths: '100,200', sizes: '80px', alt: '', class: 'gift-guide__preview-image'
+                  | image_url: width: 900
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '300,450,600,900',
+                    sizes: '(min-width: 990px) 30vw, 90vw',
+                    alt: gg_product.title,
+                    class: 'gift-guide__thumb-image'
                 }}
+              {%- else -%}
+                {{ 'product-apparel-1' | placeholder_svg_tag: 'gift-guide__thumb-image' }}
               {%- endif -%}
-              <span class="gift-guide__preview-body">
-                <span class="gift-guide__preview-title">{{ gg_product.title }}</span>
-                <span class="gift-guide__preview-price">{{ default_variant.price | money }}</span>
-              </span>
-            </button>
-          </div>
 
-          {%- comment -%} ---------- Stage 2: quick view dialog ---------- {%- endcomment -%}
-          <dialog
-            class="gift-guide__quickview"
-            ref="quickViews[]"
-            data-index="{{ rendered_index }}"
-            aria-label="{{ gg_product.title | escape }}"
-          >
-            <div class="gift-guide__quickview-inner">
+              {%- liquid
+                assign x_key = 'product_' | append: position | append: '_x'
+                assign y_key = 'product_' | append: position | append: '_y'
+                assign hotspot_x = section.settings[x_key] | default: 50
+                assign hotspot_y = section.settings[y_key] | default: 50
+              -%}
+
               <button
                 type="button"
-                class="gift-guide__quickview-close"
-                aria-label="{{ 'actions.close' | t }}"
-                on:click="/closeQuickView?index={{ rendered_index }}"
+                class="gift-guide__quick-trigger"
+                data-gift-guide-trigger="{{ rendered_index }}"
+                aria-haspopup="dialog"
+                aria-expanded="false"
+                aria-label="{{ gg_product.title | escape }}"
+                style="left: {{ hotspot_x }}%; top: {{ hotspot_y }}%;"
+                on:click="/togglePreview?index={{ rendered_index }}"
               >
-                <span aria-hidden="true">&times;</span>
+                <span
+                  class="gift-guide__trigger-icon gift-guide__trigger-icon--plus"
+                  aria-hidden="true"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7 0V14M0 7H14"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
+
+                <span
+                  class="gift-guide__trigger-icon gift-guide__trigger-icon--close"
+                  aria-hidden="true"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 1L13 13M13 1L1 13"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
               </button>
 
-
-              <div class="gift-guide__quickview-header">
-                <div class="gift-guide__quickview-media">
-
-                  {%- if gg_product.featured_image -%}
-                    {{
-                      gg_product.featured_image
-                      | image_url: width: 360, height: 480, crop: 'center'
-                      | image_tag:
-                        loading: 'lazy',
-                        widths: '120,180,240,360',
-                        sizes: '120px',
-                        alt: gg_product.title,
-                        class: 'gift-guide__quickview-image'
-                    }}
-                  {%- endif -%}
-                </div>
-
-                <div class="gift-guide__quickview-summary">
-                  <h3 class="gift-guide__quickview-title">{{ gg_product.title }}</h3>
-
-                  <p
-                    class="gift-guide__quickview-price"
-                    data-gift-guide-price
-                  >
-                    {{- default_variant.price | money -}}
-                  </p>
-
-                  {%- if gg_product.description != blank -%}
-                    <div class="gift-guide__quickview-description rte">{{ gg_product.description }}</div>
-                  {%- endif -%}
-                </div>
-              </div>
-
-              <div class="gift-guide__quickview-details">
-
-                {%- if has_color -%}
-                  {%- assign color_option = gg_product.options_with_values[color_index] -%}
-                  <fieldset class="gift-guide__option">
-                    <legend class="gift-guide__option-label">{{ color_option.name }}</legend>
-
-                    <div class="gift-guide__colors">
-                      {%- for option_value in color_option.values -%}
-                        {%- liquid
-
-                          assign color_key = option_value.name | downcase | strip
-                          assign bar_color = '#cccccc'
-
-                          if color_key contains 'charcoal'
-                            assign bar_color = '#36454f'
-                          elsif color_key contains 'burgundy' or color_key contains 'maroon' or color_key contains 'wine'
-                            assign bar_color = '#7f1d1d'
-                          elsif color_key contains 'navy'
-                            assign bar_color = '#1e3a5f'
-                          elsif color_key contains 'teal'
-                            assign bar_color = '#0d9488'
-                          elsif color_key contains 'olive'
-                            assign bar_color = '#556b2f'
-                          elsif color_key contains 'khaki' or color_key contains 'tan'
-                            assign bar_color = '#c3b091'
-                          elsif color_key contains 'beige'
-                            assign bar_color = '#e8dcc8'
-                          elsif color_key contains 'cream' or color_key contains 'ivory'
-                            assign bar_color = '#fdf6e3'
-                          elsif color_key contains 'silver'
-                            assign bar_color = '#c0c0c0'
-                          elsif color_key contains 'gold'
-                            assign bar_color = '#d4af37'
-                          elsif color_key contains 'grey' or color_key contains 'gray'
-                            assign bar_color = '#808080'
-                          elsif color_key contains 'black'
-                            assign bar_color = '#000000'
-                          elsif color_key contains 'white'
-                            assign bar_color = '#ffffff'
-                          elsif color_key contains 'blue'
-                            assign bar_color = '#1d4ed8'
-                          elsif color_key contains 'red'
-                            assign bar_color = '#dc2626'
-                          elsif color_key contains 'pink'
-                            assign bar_color = '#ec4899'
-                          elsif color_key contains 'orange'
-                            assign bar_color = '#f97316'
-                          elsif color_key contains 'yellow'
-                            assign bar_color = '#facc15'
-                          elsif color_key contains 'green'
-                            assign bar_color = '#16a34a'
-                          elsif color_key contains 'purple' or color_key contains 'violet'
-                            assign bar_color = '#7c3aed'
-                          elsif color_key contains 'brown'
-                            assign bar_color = '#92400e'
-                          endif
-
-                          if option_value.swatch.color
-                            assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
-                          endif
-                        -%}
-                        <button
-                          type="button"
-                          class="gift-guide__color"
-                          data-gift-guide-swatch
-                          data-value="{{ option_value.name | escape }}"
-                          aria-pressed="false"
-                          style="--gg-color-bar: {{ bar_color }};"
-                          on:click="/selectColor?index={{ rendered_index }}"
-                        >
-                          {{ option_value.name }}
-                        </button>
-                      {%- endfor -%}
-                    </div>
-                  </fieldset>
-                {%- endif -%}
-
-                {%- if has_size -%}
-                  {%- liquid
-                    assign size_option = gg_product.options_with_values[size_index]
-                    assign size_list_id = 'GiftGuideSizeList-' | append: section.id | append: '-' | append: rendered_index
-                    assign size_label_id = 'GiftGuideSizeLabel-' | append: section.id | append: '-' | append: rendered_index
-                  -%}
-                  <div class="gift-guide__option">
-                    <span
-                      class="gift-guide__option-label"
-                      id="{{ size_label_id }}"
-                    >
-                      {{ size_option.name }}
-                    </span>
-
-                    <div
-                      class="gift-guide__size"
-                      data-gift-guide-size
-                      on:keydown="/sizeKeydown?index={{ rendered_index }}"
-                    >
-                      <button
-                        type="button"
-                        class="gift-guide__size-trigger"
-                        data-gift-guide-size-trigger
-                        aria-haspopup="listbox"
-                        aria-expanded="false"
-                        aria-controls="{{ size_list_id }}"
-                        aria-labelledby="{{ size_label_id }}"
-                        on:click="/toggleSizeMenu?index={{ rendered_index }}"
-                      >
-                        <span
-                          class="gift-guide__size-label"
-                          data-gift-guide-size-value
-                        >
-                          {{- section.settings.size_placeholder -}}
-                        </span>
-                        <span class="gift-guide__size-caret">
-                          <svg
-                            aria-hidden="true"
-                            focusable="false"
-                            class="icon icon-caret gift-guide__size-chevron"
-                            viewBox="0 0 10 6"
-                          >
-                            {%- render 'icon', icon: 'caret' -%}
-                          </svg>
-                        </span>
-                      </button>
-
-                      <ul
-                        class="gift-guide__size-list"
-                        id="{{ size_list_id }}"
-                        role="listbox"
-                        aria-labelledby="{{ size_label_id }}"
-                        hidden
-                      >
-                        {%- for option_value in size_option.values -%}
-                          <li
-                            class="gift-guide__size-option"
-                            role="option"
-                            tabindex="-1"
-                            aria-selected="false"
-                            data-gift-guide-size-option
-                            data-value="{{ option_value.name | escape }}"
-                            on:click="/selectSize?index={{ rendered_index }}"
-                          >
-                            {{ option_value.name }}
-                          </li>
-                        {%- endfor -%}
-                      </ul>
-                    </div>
-                  </div>
-                {%- endif -%}
-
-                <form
-                  action="{{ routes.cart_add_url }}"
-                  method="post"
-                  enctype="multipart/form-data"
-                  class="gift-guide__form"
-                  on:submit="/addToCart?index={{ rendered_index }}"
-                >
-                  <input
-                    type="hidden"
-                    name="id"
-                    value="{{ default_variant.id }}"
-                  >
-                  <input
-                    type="hidden"
-                    name="quantity"
-                    value="1"
-                  >
-
-                  <p
-                    class="gift-guide__error"
-                    data-gift-guide-error
-                    role="status"
-                    aria-live="polite"
-                    hidden
-                  ></p>
-
-                  <button
-                    type="submit"
-                    class="gift-guide__btn gift-guide__btn--primary gift-guide__add"
-                    data-gift-guide-add
-                    data-color-required-label="{{ color_required_label | escape }}"
-                    data-size-required-label="{{ size_required_label | escape }}"
-                    data-default-label="{{ 'products.product.add_to_cart' | t }}"
-                    data-added-label="{{ 'actions.added' | t }} &check;"
-                    data-sold-out-label="{{ 'products.product.sold_out' | t }}"
-                    data-unavailable-label="{{ 'products.product.unavailable' | t }}"
-                    data-error-label="{{ 'products.product.add_to_cart_error' | t }}"
-                    {% unless default_variant.available %}
-                      disabled
-                    {% endunless %}
-                  >
-                    <span data-gift-guide-add-label>
-                      {%- if default_variant.available -%}
-                        {{ 'products.product.add_to_cart' | t }}
-                      {%- else -%}
-                        {{ 'products.product.sold_out' | t }}
-                      {%- endif -%}
-                    </span>
-                    <span class="gift-guide__arrow" aria-hidden="true"></span>
-                  </button>
-                </form>
-              </div>
             </div>
 
-            <script type="application/json" data-gift-guide-variants>
-              [
-                {%- for variant in gg_product.variants -%}
-                  {
-                    "id": {{ variant.id }},
-                    "color": {% if has_color %}{{ variant.options[color_index] | json }}{% else %}null{% endif %},
-                    "size": {% if has_size %}{{ variant.options[size_index] | json }}{% else %}null{% endif %},
-                    "available": {{ variant.available }},
-                    "price": {{ variant.price | money | strip_html | json }}
-                  }{% unless forloop.last %},{% endunless %}
-                {%- endfor -%}
-              ]
-            </script>
-          </dialog>
-        </li>
+            {%- comment -%} ---------- Stage 1: preview over the image ---------- {%- endcomment -%}
 
-        {%- assign rendered_index = rendered_index | plus: 1 -%}
-      {%- endif -%}
+            <div
+              class="gift-guide__preview"
+              ref="previews[]"
+              hidden
+            >
+              <button
+                type="button"
+                class="gift-guide__preview-card"
+                data-gift-guide-expand
+                on:click="/openQuickView?index={{ rendered_index }}"
+              >
+
+                {%- if gg_product.featured_image -%}
+                  {{
+                    gg_product.featured_image
+                    | image_url: width: 200
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '100,200',
+                      sizes: '80px',
+                      alt: '',
+                      class: 'gift-guide__preview-image'
+                  }}
+                {%- endif -%}
+
+                <span class="gift-guide__preview-body">
+                  <span class="gift-guide__preview-title">
+                    {{ gg_product.title }}
+                  </span>
+
+                  <span class="gift-guide__preview-price">
+                    {{ default_variant.price | money }}
+                  </span>
+                </span>
+
+              </button>
+            </div>
+
+            {%- comment -%} ---------- Stage 2: quick view dialog ---------- {%- endcomment -%}
+
+            <dialog
+              class="gift-guide__quickview"
+              ref="quickViews[]"
+              data-index="{{ rendered_index }}"
+              aria-label="{{ gg_product.title | escape }}"
+            >
+
+              <div class="gift-guide__quickview-inner">
+
+                <button
+                  type="button"
+                  class="gift-guide__quickview-close"
+                  aria-label="{{ 'actions.close' | t }}"
+                  on:click="/closeQuickView?index={{ rendered_index }}"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+
+                <div class="gift-guide__quickview-header">
+
+                  <div class="gift-guide__quickview-media">
+
+                    {%- if gg_product.featured_image -%}
+                      {{
+                        gg_product.featured_image
+                        | image_url: width: 360, height: 480, crop: 'center'
+                        | image_tag:
+                          loading: 'lazy',
+                          widths: '120,180,240,360',
+                          sizes: '120px',
+                          alt: gg_product.title,
+                          class: 'gift-guide__quickview-image'
+                      }}
+                    {%- endif -%}
+
+                  </div>
+
+                  <div class="gift-guide__quickview-summary">
+
+                    <h3 class="gift-guide__quickview-title">
+                      {{ gg_product.title }}
+                    </h3>
+
+                    <p
+                      class="gift-guide__quickview-price"
+                      data-gift-guide-price
+                    >
+                      {{- default_variant.price | money -}}
+                    </p>
+
+                    {%- if gg_product.description != blank -%}
+                      <div class="gift-guide__quickview-description rte">
+                        {{ gg_product.description }}
+                      </div>
+                    {%- endif -%}
+
+                  </div>
+
+                </div>
+
+                <div class="gift-guide__quickview-details">
+
+                  {%- if has_color -%}
+
+                    {%- assign color_option = gg_product.options_with_values[color_index] -%}
+
+                    <fieldset class="gift-guide__option">
+
+                      <legend class="gift-guide__option-label">
+                        {{ color_option.name }}
+                      </legend>
+
+                      <div class="gift-guide__colors">
+
+                        {%- for option_value in color_option.values -%}
+
+                          {%- liquid
+                            assign color_key = option_value.name | downcase | strip
+                            assign bar_color = '#cccccc'
+
+                            if color_key contains 'charcoal'
+                              assign bar_color = '#36454f'
+                            elsif color_key contains 'burgundy' or color_key contains 'maroon' or color_key contains 'wine'
+                              assign bar_color = '#7f1d1d'
+                            elsif color_key contains 'navy'
+                              assign bar_color = '#1e3a5f'
+                            elsif color_key contains 'teal'
+                              assign bar_color = '#0d9488'
+                            elsif color_key contains 'olive'
+                              assign bar_color = '#556b2f'
+                            elsif color_key contains 'khaki' or color_key contains 'tan'
+                              assign bar_color = '#c3b091'
+                            elsif color_key contains 'beige'
+                              assign bar_color = '#e8dcc8'
+                            elsif color_key contains 'cream' or color_key contains 'ivory'
+                              assign bar_color = '#fdf6e3'
+                            elsif color_key contains 'silver'
+                              assign bar_color = '#c0c0c0'
+                            elsif color_key contains 'gold'
+                              assign bar_color = '#d4af37'
+                            elsif color_key contains 'grey' or color_key contains 'gray'
+                              assign bar_color = '#808080'
+                            elsif color_key contains 'black'
+                              assign bar_color = '#000000'
+                            elsif color_key contains 'white'
+                              assign bar_color = '#ffffff'
+                            elsif color_key contains 'blue'
+                              assign bar_color = '#1d4ed8'
+                            elsif color_key contains 'red'
+                              assign bar_color = '#dc2626'
+                            elsif color_key contains 'pink'
+                              assign bar_color = '#ec4899'
+                            elsif color_key contains 'orange'
+                              assign bar_color = '#f97316'
+                            elsif color_key contains 'yellow'
+                              assign bar_color = '#facc15'
+                            elsif color_key contains 'green'
+                              assign bar_color = '#16a34a'
+                            elsif color_key contains 'purple' or color_key contains 'violet'
+                              assign bar_color = '#7c3aed'
+                            elsif color_key contains 'brown'
+                              assign bar_color = '#92400e'
+                            endif
+
+                            if option_value.swatch.color
+                              assign bar_color = 'rgb(' | append: option_value.swatch.color.rgb | append: ')'
+                            endif
+                          -%}
+
+                          <button
+                            type="button"
+                            class="gift-guide__color"
+                            data-gift-guide-swatch
+                            data-value="{{ option_value.name | escape }}"
+                            aria-pressed="false"
+                            style="--gg-color-bar: {{ bar_color }};"
+                            on:click="/selectColor?index={{ rendered_index }}"
+                          >
+                            {{ option_value.name }}
+                          </button>
+
+                        {%- endfor -%}
+
+                      </div>
+
+                    </fieldset>
+
+                  {%- endif -%}
+
+                  {%- if has_size -%}
+
+                    {%- liquid
+                      assign size_option = gg_product.options_with_values[size_index]
+                      assign size_list_id = 'GiftGuideSizeList-' | append: section.id | append: '-' | append: rendered_index
+                      assign size_label_id = 'GiftGuideSizeLabel-' | append: section.id | append: '-' | append: rendered_index
+                    -%}
+
+                    <div class="gift-guide__option">
+
+                      <span
+                        class="gift-guide__option-label"
+                        id="{{ size_label_id }}"
+                      >
+                        {{ size_option.name }}
+                      </span>
+
+                      <div
+                        class="gift-guide__size"
+                        data-gift-guide-size
+                        on:keydown="/sizeKeydown?index={{ rendered_index }}"
+                      >
+
+                        <button
+                          type="button"
+                          class="gift-guide__size-trigger"
+                          data-gift-guide-size-trigger
+                          aria-haspopup="listbox"
+                          aria-expanded="false"
+                          aria-controls="{{ size_list_id }}"
+                          aria-labelledby="{{ size_label_id }}"
+                          on:click="/toggleSizeMenu?index={{ rendered_index }}"
+                        >
+                          <span
+                            class="gift-guide__size-label"
+                            data-gift-guide-size-value
+                          >
+                            {{- section.settings.size_placeholder -}}
+                          </span>
+
+                          <span class="gift-guide__size-caret">
+                            <svg
+                              aria-hidden="true"
+                              focusable="false"
+                              class="gift-guide__size-chevron"
+                              viewBox="0 0 10 6"
+                            >
+                              {%- render 'icon', icon: 'caret' -%}
+                            </svg>
+                          </span>
+                        </button>
+
+                        <ul
+                          class="gift-guide__size-list"
+                          id="{{ size_list_id }}"
+                          role="listbox"
+                          aria-labelledby="{{ size_label_id }}"
+                          hidden
+                        >
+
+                          {%- for option_value in size_option.values -%}
+                            <li
+                              class="gift-guide__size-option"
+                              role="option"
+                              tabindex="-1"
+                              aria-selected="false"
+                              data-gift-guide-size-option
+                              data-value="{{ option_value.name | escape }}"
+                              on:click="/selectSize?index={{ rendered_index }}"
+                            >
+                              {{ option_value.name }}
+                            </li>
+                          {%- endfor -%}
+
+                        </ul>
+
+                      </div>
+
+                    </div>
+
+                  {%- endif -%}
+
+                  <form
+                    action="{{ routes.cart_add_url }}"
+                    method="post"
+                    enctype="multipart/form-data"
+                    class="gift-guide__form"
+                    on:submit="/addToCart?index={{ rendered_index }}"
+                  >
+
+                    <input
+                      type="hidden"
+                      name="id"
+                      value="{{ default_variant.id }}"
+                    >
+
+                    <input
+                      type="hidden"
+                      name="quantity"
+                      value="1"
+                    >
+
+                    <p
+                      class="gift-guide__error"
+                      data-gift-guide-error
+                      role="status"
+                      aria-live="polite"
+                      hidden
+                    ></p>
+
+                    <button
+                      type="submit"
+                      class="gift-guide__btn gift-guide__btn--primary gift-guide__add"
+                      data-gift-guide-add
+                      data-color-required-label="{{ color_required_label | escape }}"
+                      data-size-required-label="{{ size_required_label | escape }}"
+                      data-default-label="{{ 'products.product.add_to_cart' | t }}"
+                      data-added-label="{{ 'actions.added' | t }} &check;"
+                      data-sold-out-label="{{ 'products.product.sold_out' | t }}"
+                      data-unavailable-label="{{ 'products.product.unavailable' | t }}"
+                      data-error-label="{{ 'products.product.add_to_cart_error' | t }}"
+                      {% unless default_variant.available %}
+                        disabled
+                      {% endunless %}
+                    >
+                      <span data-gift-guide-add-label>
+                        {%- if default_variant.available -%}
+                          {{ 'products.product.add_to_cart' | t }}
+                        {%- else -%}
+                          {{ 'products.product.sold_out' | t }}
+                        {%- endif -%}
+                      </span>
+
+                      <span
+                        class="gift-guide__arrow"
+                        aria-hidden="true"
+                      ></span>
+                    </button>
+
+                  </form>
+
+                </div>
+
+              </div>
+
+              <script type="application/json" data-gift-guide-variants>
+                [
+                  {%- for variant in gg_product.variants -%}
+                    {
+                      "id": {{ variant.id }},
+                      "color": {% if has_color %}{{ variant.options[color_index] | json }}{% else %}null{% endif %},
+                      "size": {% if has_size %}{{ variant.options[size_index] | json }}{% else %}null{% endif %},
+                      "available": {{ variant.available }},
+                      "price": {{ variant.price | money | strip_html | json }}
+                    }{% unless forloop.last %},{% endunless %}
+                  {%- endfor -%}
+                ]
+              </script>
+
+            </dialog>
+
+          </li>
+
+          {%- assign rendered_index = rendered_index | plus: 1 -%}
+
+        {%- endif -%}
+
       {%- endfor -%}
-    </ul>
-  </div>
-</gift-guide-component>
 
+    </ul>
+
+  </div>
+
+</gift-guide-component>
 {% stylesheet %}
   .gift-guide {
     --gg-ink: var(--color-foreground);
@@ -1623,7 +1746,7 @@
     "type": "font_picker",
     "id": "products_heading_font",
     "label": "Products heading font",
-    "default": "helvetica_n4"
+    "default": "sans-serif"
     },
     {
       "type": "header",
