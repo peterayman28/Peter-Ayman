@@ -891,11 +891,6 @@
     justify-self: end;
   }
 
-  /* The top bar is a 1fr auto 1fr grid and the button is nowrap, so it is the
-     one rigid item in the row: at tablet widths it held its full desktop size
-     and forced the brand and tagline to wrap around it. Scaling all three down
-     together keeps the bar on a single line. Kept above 750px so the mobile
-     dropdown panel, where the button is on its own row, is unaffected. */
   @media screen and (min-width: 750px) {
     .gift-guide__topbar-brand {
       font-size: clamp(1.125rem, 2.3vw, 2rem);
