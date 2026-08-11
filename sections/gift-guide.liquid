@@ -62,7 +62,17 @@
         {%- endif -%}
 
         <div class="gift-guide__topbar-brand">
-          {%- if settings.logo != blank -%}
+          {%- if section.settings.top_bar_logo != blank -%}
+            {{
+              section.settings.top_bar_logo
+              | image_url: width: 300
+              | image_tag:
+                widths: '150,300',
+                sizes: '150px',
+                alt: shop.name,
+                class: 'gift-guide__topbar-logo'
+            }}
+          {%- elsif settings.logo != blank -%}
             {{
               settings.logo
               | image_url: width: 300
@@ -72,6 +82,13 @@
                 alt: shop.name,
                 class: 'gift-guide__topbar-logo'
             }}
+          {%- elsif section.settings.use_bundled_logo -%}
+            <img
+              src="{{ 'logo.png' | asset_url }}"
+              alt="{{ shop.name | escape }}"
+              class="gift-guide__topbar-logo"
+              loading="eager"
+            >
           {%- else -%}
             {{ section.settings.brand_name | default: shop.name }}
           {%- endif -%}
@@ -1727,10 +1744,23 @@
       "default": true
     },
     {
+      "type": "image_picker",
+      "id": "top_bar_logo",
+      "label": "Top bar logo",
+      "info": "Overrides the theme logo and brand name text for this section only."
+    },
+    {
+      "type": "checkbox",
+      "id": "use_bundled_logo",
+      "label": "Use bundled logo.png",
+      "info": "Falls back to assets/logo.png when neither the top bar logo above nor the theme logo is set.",
+      "default": true
+    },
+    {
       "type": "text",
       "id": "brand_name",
       "label": "Top bar brand name",
-      "info": "Used when no logo is set in theme settings. Defaults to the store name if left blank.",
+      "info": "Used when no logo is shown at all. Defaults to the store name if left blank.",
       "default": "TISSO VISON"
     },
     {
