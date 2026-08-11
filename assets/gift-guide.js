@@ -1,35 +1,11 @@
-/**
- * Gift Guide section behaviour — a two-stage product quick view.
- *
- * Stage 1: clicking a product image reveals a small preview card layered on top
- *          of that image (thumbnail, title, price).
- * Stage 2: clicking that preview card opens a centred <dialog> quick view with
- *          the larger image, description, colour swatches, size dropdown and an
- *          AJAX add-to-cart.
- *
- * Liquid owns all structure and product data (see sections/gift-guide.liquid).
- * This module only toggles visibility, resolves the selected variant from the
- * option controls already in the DOM, and talks to the Cart AJAX API. There is
- * no client-side templating and no third-party library.
- */
-
 import { Component } from '@theme/component';
 import { fetchConfig } from '@theme/utilities';
 import { CartLinesUpdateEvent } from '@shopify/events';
 
-/** How long the "Added ✓" confirmation stays on the add-to-cart button (ms). */
 const ADDED_STATE_DURATION = 2000;
-
-/** Breathing room kept between the open size drawer and the viewport edge (px). */
 const VIEWPORT_MARGIN = 16;
-
-/** Gap kept between the open size drawer and the popup's own edge (px). */
 const DRAWER_INSET = 8;
-
-/** Never shrink the drawer below roughly two rows (px). */
 const MIN_MENU_HEIGHT = 74;
-
-/** Tallest the size drawer gets, matching its CSS max-height of 16rem (px). */
 const MAX_MENU_HEIGHT = 256;
 
 /**
@@ -52,6 +28,7 @@ const MAX_MENU_HEIGHT = 256;
  *
  * @extends {Component<GiftGuideRefs>}
  */
+
 class GiftGuideComponent extends Component {
   /**
    * Index of the stage 1 preview that is currently open, or null when none is.
@@ -77,9 +54,6 @@ class GiftGuideComponent extends Component {
     document.addEventListener('click', this.#handleDocumentClick);
     document.addEventListener('keydown', this.#handleKeydown);
 
-    // A native <dialog> reports backdrop clicks as clicks on the dialog itself.
-    // These are wired directly rather than with `on:click`, because the
-    // delegated handler rewrites event.target and the distinction would be lost.
     for (const dialog of this.#quickViews) {
       dialog.addEventListener('click', this.#handleDialogClick);
       dialog.addEventListener('close', this.#handleDialogClose);
@@ -113,36 +87,16 @@ class GiftGuideComponent extends Component {
     return this.refs.quickViews ?? [];
   }
 
-  /* ------------------------------------------------------------------ *
-   * Mobile menu — the hamburger dropdown in the top bar
-   * ------------------------------------------------------------------ */
-
-  /**
-   * Expands or collapses the mobile dropdown holding the tagline and the
-   * Choose Gift button.
-   *
-   * The panel is only ever a panel below the mobile breakpoint; above it the
-   * stylesheet gives it `display: contents`, which makes `hidden` inert, so
-   * this state costs nothing on desktop and needs no resize handling.
-   *
-   * Both refs are absent when the merchant has hidden the top bar, or left the
-   * tagline and button blank, hence the guard.
-   */
   toggleMobileMenu() {
     const { menuToggle, menuPanel } = this.refs;
     if (!menuToggle || !menuPanel) return;
 
     const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
 
-    // aria-expanded is the single source of truth, as it is for the product
-    // "+" triggers: the CSS reads it to swap the hamburger for the close icon.
+
     menuToggle.setAttribute('aria-expanded', String(!expanded));
     menuPanel.hidden = expanded;
   }
-
-  /* ------------------------------------------------------------------ *
-   * Stage 1 — the small preview layered over the grid image
-   * ------------------------------------------------------------------ */
 
   /**
    * Opens the preview for a product, closing any other that was open.
@@ -161,7 +115,6 @@ class GiftGuideComponent extends Component {
     const trigger = this.querySelector(`[data-gift-guide-trigger="${index}"]`);
     if (trigger instanceof HTMLElement) trigger.setAttribute('aria-expanded', 'true');
 
-    // Move focus into the preview so keyboard users land on the new content.
     const focusable = preview.querySelector('[data-gift-guide-expand]');
     if (focusable instanceof HTMLElement) focusable.focus();
   }
@@ -188,8 +141,6 @@ class GiftGuideComponent extends Component {
    * @param {MouseEvent} event - The originating click.
    */
   closePreview({ index }, event) {
-    // The close button is a sibling of the card that opens stage 2, but stop
-    // propagation anyway so an overlapping hit area can never open the dialog.
     event.stopPropagation();
     this.#closeAllPreviews();
 
@@ -205,10 +156,6 @@ class GiftGuideComponent extends Component {
     this.#openPreviewIndex = null;
   }
 
-  /* ------------------------------------------------------------------ *
-   * Stage 2 — the centred quick view dialog
-   * ------------------------------------------------------------------ */
-
   /**
    * Expands a preview into the full quick view dialog.
    *
@@ -221,8 +168,6 @@ class GiftGuideComponent extends Component {
     this.#closeAllPreviews();
     this.#syncQuickView(index);
 
-    // showModal() puts the dialog in the top layer, so it escapes any ancestor
-    // overflow or stacking context, and gives us Esc-to-close and a focus trap.
     dialog.showModal();
   }
 
@@ -257,17 +202,12 @@ class GiftGuideComponent extends Component {
     };
 
     if (previous === -1) {
-      // Nothing was selected, so there is no journey to animate: apply the fill
-      // immediately. Suppressing the transition needs the "none" to be in
-      // effect before the transform changes, hence the forced reflows.
       for (const option of options) option.setAttribute('data-instant', '');
       void swatch.offsetWidth;
       select();
       void swatch.offsetWidth;
       for (const option of options) option.removeAttribute('data-instant');
     } else {
-      // Moving between colours: the outgoing fill retreats and the incoming one
-      // grows from the facing edge, so the two read as a single movement.
       const movingRight = next > previous;
       options[previous]?.style.setProperty('--gg-fill-origin', movingRight ? 'right' : 'left');
       swatch.style.setProperty('--gg-fill-origin', movingRight ? 'left' : 'right');
@@ -326,11 +266,7 @@ class GiftGuideComponent extends Component {
   #clearError(index) {
     this.#setError(index, '');
   }
-
-  /* ------------------------------------------------------------------ *
-   * Size: a custom listbox standing in for a native <select>
-   * ------------------------------------------------------------------ */
-
+  
   /**
    * @param {number} index - The product's position in the grid.
    * @returns {Element | null} The size dropdown wrapper, if the product has sizes.
@@ -405,16 +341,11 @@ class GiftGuideComponent extends Component {
     trigger.setAttribute('aria-expanded', 'true');
     list.hidden = false;
 
-    // Always opens downward. Fit it to the room below the trigger, measured
-    // against the popup's own box rather than the viewport, so the drawer stays
-    // inside the card; anything that does not fit is reached by scrolling it.
     const triggerRect = trigger.getBoundingClientRect();
     const popup = this.#quickViews[index]?.getBoundingClientRect();
 
     const floor = Math.min(popup?.bottom ?? Infinity, window.innerHeight - VIEWPORT_MARGIN);
 
-    // The minimum can exceed the room available only if the card is
-    // pathologically short, where an unusably thin drawer would be worse.
     const available = Math.max(MIN_MENU_HEIGHT, Math.floor(floor - triggerRect.bottom - DRAWER_INSET));
 
     list.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, available)}px`;
@@ -520,19 +451,10 @@ class GiftGuideComponent extends Component {
         return;
       }
 
-      /* Escape is handled by #handleDialogCancel, not here. The browser turns
-       * it into a close request on the dialog; if this handler collapsed the
-       * menu first, that request would then close the dialog too. */
-
       case 'Tab':
         if (expanded) this.#closeSizeMenu(index);
     }
   }
-
-  /* ------------------------------------------------------------------ *
-   * Variant resolution
-   * ------------------------------------------------------------------ */
-
   /**
    * Reads (and caches) the variant data Liquid embedded in a dialog.
    *
@@ -600,11 +522,8 @@ class GiftGuideComponent extends Component {
     const purchasable = Boolean(variant?.available);
     const awaitingChoice = this.#missingChoice(index) !== null;
 
-    // While a choice is outstanding the button stays enabled, so clicking it
-    // surfaces the validation message rather than doing nothing at all.
     button.disabled = !awaitingChoice && !purchasable;
 
-    // Leave an in-flight "Added ✓" confirmation alone; it restores itself.
     if (this.#addedTimeouts.has(index) || !label) return;
 
     label.textContent =
@@ -614,10 +533,6 @@ class GiftGuideComponent extends Component {
           ? (button.dataset.soldOutLabel ?? '')
           : (button.dataset.unavailableLabel ?? '');
   }
-
-  /* ------------------------------------------------------------------ *
-   * Add to cart
-   * ------------------------------------------------------------------ */
 
   /**
    * Adds the selected variant to the cart without a page reload, then shows a
@@ -634,8 +549,6 @@ class GiftGuideComponent extends Component {
     const button = dialog?.querySelector('[data-gift-guide-add]');
     if (!(button instanceof HTMLButtonElement)) return;
 
-    // Nothing is preselected, so validate here rather than leaving the shopper
-    // with a button that silently does nothing.
     const missing = this.#missingChoice(index);
     if (missing) {
       const message =
@@ -652,8 +565,6 @@ class GiftGuideComponent extends Component {
     const body = new FormData();
     body.set('id', String(variant.id));
     body.set('quantity', '1');
-
-    // Announce the pending change up front, with a promise the listeners await.
     const deferred = CartLinesUpdateEvent.createPromise();
 
     this.dispatchEvent(
@@ -671,10 +582,8 @@ class GiftGuideComponent extends Component {
       const response = await fetch(Theme.routes.cart_add_url, fetchConfig('javascript', { body }));
       const result = await response.json();
 
-      // The Cart AJAX API reports failures with a `status` field, not an HTTP error.
       if (result.status) throw new Error(result.description || result.message || 'Add to cart failed');
 
-      // Re-read the cart so listeners get an authoritative total quantity.
       const cart = await (await fetch(`${Theme.routes.cart_url}.js`)).json();
 
       deferred.resolve({
@@ -710,10 +619,6 @@ class GiftGuideComponent extends Component {
     const label = button.querySelector('[data-gift-guide-add-label]');
     if (label) label.textContent = button.dataset.addedLabel ?? '';
 
-    // The success label carries its own check mark, so the arrow is redundant.
-    // Hidden with an inline style rather than by the class alone: an inline
-    // style beats any stylesheet rule, so this holds even if the section CSS
-    // served to the browser is stale.
     const arrow = button.querySelector('.gift-guide__arrow');
     if (arrow instanceof HTMLElement) arrow.style.display = 'none';
 
@@ -744,9 +649,6 @@ class GiftGuideComponent extends Component {
     this.#addedTimeouts.set(index, timeout);
   }
 
-  /* ------------------------------------------------------------------ *
-   * Dismissal
-   * ------------------------------------------------------------------ */
 
   /**
    * Dismisses the stage 1 preview when the click lands outside any product
@@ -826,8 +728,6 @@ class GiftGuideComponent extends Component {
   #handleDialogClose = (event) => {
     const dialog = event.currentTarget;
     if (!(dialog instanceof HTMLDialogElement)) return;
-
-    // Leave the size menu collapsed for the next time this dialog opens.
     this.#closeSizeMenu(Number(dialog.dataset.index));
 
     const trigger = this.querySelector(`[data-gift-guide-trigger="${dialog.dataset.index}"]`);
