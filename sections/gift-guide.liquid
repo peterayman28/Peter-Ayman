@@ -1,17 +1,3 @@
-{% comment %}
-  Gift Guide
-  ----------
-  A hero (full-width illustration + copy + illustration), a thin banner strip,
-  and a 3 x 2 product grid with a two-stage quick view.
-
-  Liquid owns structure and data; behaviour lives in assets/gift-guide.js and
-  styles in the stylesheet block at the foot of this file.
-
-  Products are chosen in the theme editor. When a picker is left empty the
-  section falls back to the handle listed in `fallback_handles` below, so the
-  grid is populated out of the box.
-{% endcomment %}
-
 <script
   src="{{ 'gift-guide.js' | asset_url }}"
   type="module"
@@ -24,10 +10,6 @@
   assign products_font = section.settings.products_heading_font
 -%}
 
-{%- comment -%}
-  Emits the @font-face for the products heading. Naming a family in CSS alone
-  would not load it — Shopify serves the file via font_face.
-{%- endcomment -%}
 {% style %}
   {{ products_font | font_face: font_display: 'swap' }}
 {% endstyle %}
@@ -35,11 +17,6 @@
 <gift-guide-component
   class="gift-guide"
   id="GiftGuide-{{ section.id }}"
-  {%- comment -%}
-    The arrow asset is passed in as a custom property because a stylesheet block
-    cannot contain Liquid, and it is applied as a mask rather than an <img> so
-    it takes its colour from the button text and inverts on hover.
-  {%- endcomment -%}
   style="
     --gg-accent: {{ section.settings.accent_color | default: '#FFF544' }};
     --gg-arrow: url('{{ 'arrow.svg' | asset_url }}');
@@ -48,35 +25,19 @@
     --gg-products-font-weight: {{ products_font.weight }};
   "
 >
-  {%- comment -%}
-    ---------- Top bar ----------
-    Brand, tagline and the Choose Gift button on one white row above the hero.
-    Optional, so it can be turned off if the theme header already covers this.
-  {%- endcomment -%}
+
   {%- if section.settings.show_header_bar -%}
     {%- liquid
-      # The mobile panel only exists to hold the tagline and the Choose Gift
-      # button, so with neither configured there is nothing to expand and the
-      # hamburger is not rendered at all.
       assign has_menu_panel = false
       if section.settings.header_tagline != blank or section.settings.choose_gift_label != blank
         assign has_menu_panel = true
       endif
       assign menu_panel_id = 'GiftGuideMenu-' | append: section.id
     -%}
+
     <div class="gift-guide__topbar">
-      {%- comment -%}
-        The two wrappers below are `display: contents` above the mobile
-        breakpoint, so brand, tagline and button stay direct children of the top
-        bar's 1fr / auto / 1fr grid and the desktop row is unchanged. Under it
-        they become real boxes: a white bar, and the panel that drops beneath it.
-      {%- endcomment -%}
       <div class="gift-guide__topbar-bar">
         {%- if has_menu_panel -%}
-          {%- comment -%}
-            Mobile only. Same two-icon toggle as the product "+" triggers: both
-            spans stay in the DOM and aria-expanded decides which one shows.
-          {%- endcomment -%}
           <button
             type="button"
             class="gift-guide__menu-toggle"
@@ -112,12 +73,6 @@
         </div>
       </div>
 
-      {%- comment -%}
-        Rendered with `hidden` so the panel starts collapsed on mobile. On
-        desktop the wrapper is `display: contents`, and an author declaration
-        beats the user agent's `[hidden] { display: none }`, so the attribute is
-        inert there and the tagline and button show as they always have.
-      {%- endcomment -%}
       <div
         class="gift-guide__topbar-panel"
         id="{{ menu_panel_id }}"
@@ -146,24 +101,7 @@
     </div>
   {%- endif -%}
 
-  {%- comment -%}
-    ---------- Hero ----------
-    Row 1 is the full-width illustration. Row 2 is a real two-column grid —
-    copy on the left, illustration on the right — so neither can overlap the
-    other at any width. Nothing here is absolutely positioned.
-  {%- endcomment -%}
   <div class="gift-guide__hero">
-    <div class="gift-guide__hero-top">
-      {%- comment -%}
-        Art-directed rather than one image scaled two ways, on the same
-        <picture> pattern as sections/hero.liquid. The browser fetches only the
-        source that matches, so a phone never pulls down the 3840px-wide
-        desktop frame, and the media query is the same 749px the stylesheet
-        breaks at. Each source carries its own width/height because the two
-        files are drawn at different proportions — 686x264 against 3840x1065 —
-        and the ratio has to be known before the image loads or the hero
-        reflows once it arrives.
-      {%- endcomment -%}
       <picture>
         <source
           media="(max-width: 749px)"
@@ -189,12 +127,6 @@
         <h2 class="gift-guide__heading">{{ section.settings.heading }}</h2>
       {%- endif -%}
 
-      {%- comment -%}
-        Two subtexts, one per breakpoint, rather than one string that has to
-        read well at both widths — mobile shows a single condensed line. The
-        modifier is only added when a mobile string exists, so with the field
-        left blank the full subtext keeps showing at every width.
-      {%- endcomment -%}
       {%- if section.settings.subtext != blank -%}
         <div
           class="gift-guide__subtext rte
@@ -240,12 +172,6 @@
     </div>
   </div>
 
-  {%- comment -%}
-    ---------- Banner strip ----------
-    One string per breakpoint, on the same pattern as the hero subtext: the
-    modifier is only applied when a mobile string exists, so leaving that field
-    blank keeps a single banner showing at every width.
-  {%- endcomment -%}
   {%- if section.settings.banner_text != blank or section.settings.banner_text_mobile != blank -%}
     <div class="gift-guide__banner">
       {%- if section.settings.banner_text != blank -%}
@@ -290,8 +216,6 @@
 
       {%- if gg_product != blank -%}
         {%- liquid
-          # Locate the Color and Size options by name, so the controls below
-          # work regardless of the order they are defined on the product.
           assign color_index = -1
           assign size_index = -1
 
@@ -314,10 +238,6 @@
           endif
 
           assign default_variant = gg_product.selected_or_first_available_variant
-
-          # Neither colour nor size starts selected. The shopper chooses both and
-          # add-to-cart validates on click; default_variant only supplies the
-          # opening price and the no-JS form fallback.
           assign color_required_label = ''
           assign size_required_label = ''
 
@@ -333,10 +253,6 @@
         -%}
 
         <li class="gift-guide__cell">
-          {%- comment -%}
-            The image is presentational; the small "+" button is the only
-            interactive trigger for the stage 1 preview.
-          {%- endcomment -%}
           <div class="gift-guide__thumb">
             {%- if gg_product.featured_image -%}
               {{
@@ -353,10 +269,6 @@
               {{ 'product-apparel-1' | placeholder_svg_tag: 'gift-guide__thumb-image' }}
             {%- endif -%}
 
-            {%- comment -%}
-              Placed per product so the "+" can sit on the garment itself rather
-              than a fixed corner. Mirrors the theme's own hotspot settings.
-            {%- endcomment -%}
             {%- liquid
               assign x_key = 'product_' | append: position | append: '_x'
               assign y_key = 'product_' | append: position | append: '_y'
@@ -429,19 +341,10 @@
                 <span aria-hidden="true">&times;</span>
               </button>
 
-              {%- comment -%}
-                Compact card: a 90px thumbnail on the left, with the title,
-                price and description stacked beside it.
-              {%- endcomment -%}
+
               <div class="gift-guide__quickview-header">
                 <div class="gift-guide__quickview-media">
-                  {%- comment -%}
-                    Cropped to a 3:4 portrait rather than sized by width alone.
-                    The display box is narrow but tall, so a landscape source
-                    scaled to 120px wide has far too few vertical pixels once
-                    object-fit: cover enlarges it to cover — which is what made
-                    the thumbnail look soft. 360x480 is 3x the display width.
-                  {%- endcomment -%}
+
                   {%- if gg_product.featured_image -%}
                     {{
                       gg_product.featured_image
@@ -474,28 +377,18 @@
 
               <div class="gift-guide__quickview-details">
 
-                {%- comment -%} Colour swatches, from the "Color" option {%- endcomment -%}
                 {%- if has_color -%}
                   {%- assign color_option = gg_product.options_with_values[color_index] -%}
                   <fieldset class="gift-guide__option">
                     <legend class="gift-guide__option-label">{{ color_option.name }}</legend>
-                    {%- comment -%}
-                      Segmented control: one evenly-sized button per colour,
-                      labelled with the colour name rather than a swatch chip.
-                    {%- endcomment -%}
+
                     <div class="gift-guide__colors">
                       {%- for option_value in color_option.values -%}
                         {%- liquid
-                          # Colour chip. Prefer the merchant's configured swatch;
-                          # otherwise map the option value's own name, falling
-                          # back to a neutral grey so the CSS is always valid.
+
                           assign color_key = option_value.name | downcase | strip
                           assign bar_color = '#cccccc'
 
-                          # Substring matching, not exact, so real-world values
-                          # like "Light Grey", "Dark Red" or "Off White" resolve.
-                          # Ordered specific-first: "Navy Blue" must land on navy
-                          # before it matches blue, "Olive Green" before green.
                           if color_key contains 'charcoal'
                             assign bar_color = '#36454f'
                           elsif color_key contains 'burgundy' or color_key contains 'maroon' or color_key contains 'wine'
@@ -560,7 +453,6 @@
                   </fieldset>
                 {%- endif -%}
 
-                {%- comment -%} Size dropdown, from the "Size" option {%- endcomment -%}
                 {%- if has_size -%}
                   {%- liquid
                     assign size_option = gg_product.options_with_values[size_index]
@@ -575,11 +467,6 @@
                       {{ size_option.name }}
                     </span>
 
-                    {%- comment -%}
-                      Custom listbox rather than a native <select>. Keydown is
-                      handled on the wrapper so it covers both the trigger and
-                      the options; see sizeKeydown() in gift-guide.js.
-                    {%- endcomment -%}
                     <div
                       class="gift-guide__size"
                       data-gift-guide-size
@@ -638,10 +525,6 @@
                   </div>
                 {%- endif -%}
 
-                {%- comment -%}
-                  A real form action means the button still works if the module
-                  fails to load; gift-guide.js intercepts the submit for AJAX.
-                {%- endcomment -%}
                 <form
                   action="{{ routes.cart_add_url }}"
                   method="post"
@@ -660,9 +543,6 @@
                     value="1"
                   >
 
-                  {%- comment -%}
-                    Validation message for choices the shopper has not made yet.
-                  {%- endcomment -%}
                   <p
                     class="gift-guide__error"
                     data-gift-guide-error
@@ -699,10 +579,6 @@
               </div>
             </div>
 
-            {%- comment -%}
-              Variant data for the quick view. Options the product does not have
-              are emitted as null, and ignored when matching.
-            {%- endcomment -%}
             <script type="application/json" data-gift-guide-variants>
               [
                 {%- for variant in gg_product.variants -%}
@@ -727,14 +603,6 @@
 </gift-guide-component>
 
 {% stylesheet %}
-  /* ------------------------------------------------------------------ *
-   * Gift Guide
-   * Desktop-first: everything down to "Mobile" at the foot of this file is
-   * the desktop layout, unqualified by any breakpoint. The single
-   * `max-width: 749px` block at the end — the theme's standard mobile
-   * breakpoint, as used throughout base.css — carries the whole mobile pass.
-   * ------------------------------------------------------------------ */
-
   .gift-guide {
     --gg-ink: var(--color-foreground);
     --gg-paper: var(--color-background);
@@ -744,8 +612,6 @@
     color: var(--gg-ink);
   }
 
-  /* ---------- Buttons with a left-to-right sliding fill ---------- */
-
   .gift-guide__btn {
     position: relative;
     isolation: isolate;
@@ -753,17 +619,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /* Wider separation between the label and the arrow. */
     gap: 1.5em;
-    /* Keeps the label and arrow on one line — "Choose Gift" was breaking in
-       the top bar when the column got tight. */
     white-space: nowrap;
     padding: 1.15em 2.5em;
     border: 0;
     border-radius: 0;
     font-family: var(--font-body--family);
-    /* Shared by Shop Now, Choose Gift and Add to Cart. Ceiling lowered to 1rem
-       so buttons stop growing at a normal desktop size when zoomed out. */
     font-size: clamp(0.875rem, 0.95vw, 1rem);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -773,8 +634,6 @@
     transition: color 0.3s ease;
   }
 
-  /* assets/arrow.svg, 64x26. Drawn as a mask filled with currentColor so it
-     follows the button's text colour through the hover fill. */
   .gift-guide__arrow {
     flex: none;
     display: inline-block;
@@ -812,7 +671,6 @@
     color: var(--gg-btn-hover-color);
   }
 
-  /* Default: solid ink, fills with the accent colour. */
   .gift-guide__btn--primary {
     background-color: var(--gg-ink);
     color: var(--gg-paper);
@@ -820,7 +678,6 @@
     --gg-btn-hover-color: var(--gg-ink);
   }
 
-  /* Accent: yellow by default, fills with ink. */
   .gift-guide__btn--accent {
     background-color: var(--gg-accent, #fff544);
     color: var(--gg-ink);
@@ -828,9 +685,6 @@
     --gg-btn-hover-color: var(--gg-paper);
   }
 
-  /* Dimming is for genuinely unavailable form controls only — the sold-out
-     Add to Cart button. A link with no URL configured yet must still render at
-     its true colour, or the accent reads as a washed-out yellow. */
   .gift-guide__btn:disabled {
     cursor: not-allowed;
     opacity: 0.55;
@@ -853,30 +707,21 @@
   /* ---------- Top bar ---------- */
 
   .gift-guide__topbar {
-    /* Side columns share the leftover space, so the tagline sits dead centre
-       regardless of how wide the brand or button happen to be. */
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 1rem;
-    /* Aligned to the store's content width so it does not stretch edge to edge
-       on a wide monitor. */
     max-width: var(--page-width, 1600px);
     margin-inline: auto;
     padding: 0.75rem clamp(1rem, 3%, 4rem);
     background-color: var(--gg-paper);
   }
 
-  /* The mobile bar and dropdown wrappers must not exist as boxes here, or the
-     grid above would collapse from three columns to two. `display: contents`
-     also makes the panel's `hidden` attribute inert on desktop, because an
-     author declaration outranks the user agent's `[hidden] { display: none }`. */
   .gift-guide__topbar-bar,
   .gift-guide__topbar-panel {
     display: contents;
   }
 
-  /* Mobile only — the mobile block at the foot of this file reveals it. */
   .gift-guide__menu-toggle {
     display: none;
   }
@@ -904,8 +749,6 @@
 
   /* ---------- Hero ---------- */
 
-  /* Same content width as the top bar and product grid, so the hero shrinks
-     in step with the rest of the page instead of ballooning when zoomed out. */
   .gift-guide__hero {
     position: relative;
     width: 100%;
@@ -917,7 +760,6 @@
     line-height: 0;
   }
 
-  /* Scales down with whatever column holds it, never past its own width. */
   .gift-guide__hero-frame {
     display: block;
     width: 100%;
@@ -925,15 +767,6 @@
     height: auto;
   }
 
-  /* Two real columns. minmax(0, 1fr) rather than a bare 1fr: the default
-     min-width:auto lets a grid item refuse to shrink below its content, which
-     is what pushes columns into each other as the window narrows. */
-  /* 38/62 split. 62% is not arbitrary: the bottom frame's canvas is 2374 wide
-     against the top frame's 3840, so at 2374/3840 = 62% of the hero it renders
-     its artwork at exactly the same scale as the full-width top frame. Any
-     padding or gap on this row would shrink that column and make the same
-     objects appear ~31% smaller across the seam, so the text column carries
-     its own padding instead. */
   .gift-guide__hero-row {
     display: grid;
     grid-template-columns: minmax(0, 38fr) minmax(0, 62fr);
@@ -941,23 +774,15 @@
   }
 
   .gift-guide__hero-aside {
-    /* Same reason as above — lets the illustration shrink with its column. */
     min-width: 0;
   }
 
-  /* Overlaid on the illustration rather than beside it. `top` is a percentage
-     of the hero's height, so the copy holds its position as the art scales. */
-  /* In flow inside its own grid column — nothing absolute, so it cannot
-     overlap the illustration beside it at any width. */
   .gift-guide__hero-copy {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
     min-width: 0;
-    /* Percentages here resolve against this column, which is 38% of the hero:
-       10% start and 8% end work out as ~3.8% and ~3% of the hero. The start
-       value sets how far in from the edge the copy sits. */
     padding-block: clamp(1rem, 2vw, 3rem);
     padding-inline: clamp(1rem, 10%, 12rem) clamp(0.5rem, 8%, 4rem);
     text-align: left;
@@ -966,25 +791,17 @@
   .gift-guide__heading {
     margin: 0;
     font-family: var(--font-heading--family);
-    /* The ceiling is what stops the heading outgrowing its column once the hero
-       caps out. At a 1400px hero the text column is ~406px and "The Gift Guide"
-       needs roughly 6.8x the font-size, so 3.25rem fills ~87% of it. Below
-       ~1445px viewport the 3.6vw term governs and this never engages. */
     font-size: clamp(1.75rem, 3.6vw, 3.25rem);
     line-height: 1.05;
   }
 
   .gift-guide__subtext {
-    /* Narrower than the heading above it, so the paragraph wraps sooner. */
     max-width: 88%;
-    /* Ceiling kept near the theme's own body size (14px) rather than 1.6rem,
-       which read as oversized once the hero stopped growing. */
     font-size: clamp(0.8rem, 1.1vw, 1.125rem);
     line-height: 1.55;
     color: var(--color-foreground-muted, var(--gg-ink));
   }
 
-  /* Swapped for the full subtext by the mobile block at the foot of this file. */
   .gift-guide__subtext--mobile {
     display: none;
   }
@@ -1021,15 +838,11 @@
     text-transform: uppercase;
   }
 
-  /* Swapped for the desktop string by the mobile block at the foot of this file. */
   .gift-guide__banner-text--mobile {
     display: none;
   }
 
   /* ---------- Product grid ---------- */
-
-  /* Holds the heading and the grid on the same content width, so the heading
-     lines up with the left edge of the first product. */
   .gift-guide__products {
     width: 100%;
     max-width: var(--page-width, 1600px);
@@ -1041,8 +854,6 @@
     margin: 0 0 clamp(1rem, 2vw, 2rem);
     font-family: var(--gg-products-font, var(--font-heading--family));
     font-style: var(--gg-products-font-style, normal);
-    /* 2.25rem is 36px, expressed in rem so it still honours a reader's
-       browser font-size setting. */
     font-size: 2.25rem;
     font-weight: var(--gg-products-font-weight, 400);
     line-height: 1.2;
@@ -1062,7 +873,6 @@
     position: relative;
   }
 
-  /* Presentational wrapper — the positioning context for the "+" button. */
   .gift-guide__thumb {
     position: relative;
     display: block;
@@ -1077,13 +887,8 @@
     object-fit: cover;
   }
 
-  /* The only interactive part of a card. Hidden until the card is hovered, or
-     until it takes keyboard focus — without that second condition it would be
-     unreachable for anyone not using a mouse. */
   .gift-guide__quick-trigger {
     position: absolute;
-    /* left/top are set per product in the markup; the translate centres the
-       circle on that point, so the setting reads as "where the + sits". */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1145,7 +950,6 @@
     box-shadow: 0 8px 30px rgb(0 0 0 / 18%);
   }
 
-  /* `hidden` must win over the flex display above. */
   .gift-guide__preview[hidden] {
     display: none;
   }
@@ -1202,13 +1006,9 @@
   /* ---------- Stage 2: quick view dialog ---------- */
 
   .gift-guide__quickview {
-    /* A compact card, not a full-width product panel. */
     width: 320px;
     max-width: 92vw;
     max-height: 88vh;
-    /* The popup itself never scrolls — the size drawer handles its own. Stated
-       explicitly because some UA stylesheets default <dialog> to overflow:auto,
-       which would both add a scrollbar here and clip the open size drawer. */
     overflow: visible;
     padding: 0;
     border: 0;
@@ -1225,8 +1025,6 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    /* Top clears the close button so it sits well above the image and title;
-       the deeper bottom keeps Add to Cart off the card's edge. */
     padding: 2.75rem 1rem 1.75rem;
   }
 
@@ -1239,7 +1037,6 @@
 
   .gift-guide__quickview-header {
     display: flex;
-    /* Stretch, so the image column ends level with the text beside it. */
     align-items: stretch;
     gap: 0.75rem;
   }
@@ -1248,17 +1045,10 @@
     position: relative;
     flex: none;
     width: 120px;
-    /* No fixed height: the flex stretch above takes it from the title, price
-       and description beside it. The floor stops it collapsing to a sliver on
-       a product with no description. */
     min-height: 110px;
     overflow: hidden;
   }
 
-  /* Absolutely positioned so it fills whatever height the stretch resolves to,
-     without depending on a percentage height against an indefinite parent.
-     Also overrides base.css:83, which resets every image to
-     `width: 100%; height: auto` with `max-width: 100%`. */
   .gift-guide__quickview-media .gift-guide__quickview-image {
     position: absolute;
     inset: 0;
@@ -1296,8 +1086,6 @@
   }
 
   .gift-guide__quickview-description {
-    /* Flows as normal text — no fixed height and no scroll container, so the
-       card simply grows to fit the copy. */
     font-size: 0.75rem;
     line-height: 1.5;
     color: var(--color-foreground-muted, var(--gg-ink));
@@ -1328,8 +1116,6 @@
     text-transform: uppercase;
   }
 
-  /* Colour options: a segmented control of evenly-sized, named buttons. */
-
   .gift-guide__colors {
     display: grid;
     grid-auto-flow: column;
@@ -1352,14 +1138,10 @@
     transition: color 0.3s ease;
   }
 
-  /* Collapse the shared edge so the group reads as one control. */
   .gift-guide__color + .gift-guide__color {
     border-left: 0;
   }
 
-  /* Selecting fills the button. The origin is set per click in gift-guide.js so
-     the fill travels in the direction of the move, left-to-right or
-     right-to-left; it defaults to `left` if JS has not set it. */
   .gift-guide__color::before {
     content: '';
     position: absolute;
@@ -1371,7 +1153,6 @@
     transition: transform 0.3s ease;
   }
 
-  /* First selection: nothing to travel from, so it applies with no slide. */
   .gift-guide__color[data-instant]::before {
     transition: none;
   }
@@ -1384,12 +1165,6 @@
     transform: scaleX(1);
   }
 
-  /* Colour chip: a small rectangle on the left edge, the full height of the
-     button. The inset hairline keeps pale colours (white, cream) visible.
-
-     Sits at z-index -2, one layer below the fill at -1, so the black sweep
-     passes over the chip and covers it rather than the chip punching through.
-     Both stay negative, so the label still paints above them. */
   .gift-guide__color::after {
     content: '';
     position: absolute;
@@ -1408,15 +1183,12 @@
     }
   }
 
-  /* Size options: a custom listbox in place of a native <select>. */
-
   .gift-guide__size {
     position: relative;
   }
 
   .gift-guide__size-trigger {
     display: flex;
-    /* Stretch so the caret's divider runs the full height of the control. */
     align-items: stretch;
     width: 100%;
     padding: 0;
@@ -1434,7 +1206,6 @@
     padding: 0.6rem 0.75rem;
   }
 
-  /* Caret sits in its own cell with a divider, as in the reference. */
   .gift-guide__size-caret {
     display: flex;
     align-items: center;
@@ -1457,16 +1228,9 @@
   .gift-guide__size-list {
     position: absolute;
     inset-inline: 0;
-    /* Overlap the trigger's border so the two read as one control. */
     top: calc(100% - 1px);
     z-index: 2;
-    /* Scrolls within itself rather than growing the popup. Roomy enough for a
-       full XS–XL run; gift-guide.js narrows this to the space actually
-       available so the list can never run off-screen. */
     max-height: 16rem;
-    /* Still scrolls — by wheel, trackpad, drag, or arrow keys moving focus —
-       but the scrollbar itself is hidden. scroll-behavior keeps those
-       focus-driven jumps animated rather than instant. */
     overflow-y: auto;
     overscroll-behavior: contain;
     scroll-behavior: smooth;
@@ -1479,8 +1243,6 @@
     list-style: none;
   }
 
-  /* Chrome, Safari and Edge need the pseudo-element; the properties above
-     cover Firefox and legacy Edge. */
   .gift-guide__size-list::-webkit-scrollbar {
     display: none;
   }
@@ -1495,19 +1257,12 @@
     background-color: var(--gg-paper);
     color: var(--gg-ink);
     font-size: 0.8rem;
-    /* Explicit, so row height does not swing with the merchant's paragraph
-       line-height setting — a "loose" setting made five rows overflow. */
     line-height: 1.4;
     text-align: center;
     cursor: pointer;
-    /* Slow, so the white → grey → black ramp is legible. Interpolating
-       background-color between the two passes through the greys on its own. */
     transition: background-color 0.5s ease, color 0.5s ease;
   }
 
-  /* Deliberately not plain `:focus`. Opening the drawer moves focus onto a row,
-     and filling it black would read as a size already being chosen. Keyboard
-     users still get the cue, because :focus-visible matches for them. */
   .gift-guide__size-option:hover,
   .gift-guide__size-option:focus-visible,
   .gift-guide__size-option[aria-selected='true'] {
@@ -1527,7 +1282,6 @@
   }
 
   .gift-guide__form {
-    /* Separates the button from the size control above it. */
     margin-block-start: 1rem;
   }
 
@@ -1549,26 +1303,14 @@
     font-size: 0.8rem;
   }
 
-  /* The success state carries its own check mark, so the arrow is redundant
-     while it shows. gift-guide.js adds this class on a successful add and
-     clears it after ~2s, restoring the arrow with the default label. */
   .gift-guide__add--added .gift-guide__arrow {
     display: none;
   }
 
-  /* ------------------------------------------------------------------ *
-   * Mobile
-   * 749px is the theme's own mobile breakpoint — base.css and the stock
-   * sections use `screen and (max-width: 749px)` throughout, so this matches
-   * rather than introducing a breakpoint of its own. Everything above this
-   * point is the desktop layout and is left exactly as it was.
-   * ------------------------------------------------------------------ */
 
   @media screen and (max-width: 749px) {
     /* ---------- Top bar: hamburger and dropdown panel ---------- */
 
-    /* Padding and the white background move down onto the bar itself, so the
-       expanded panel sits on the page background instead, as in the reference. */
     .gift-guide__topbar {
       display: block;
       padding: 0;
@@ -1584,8 +1326,6 @@
       background-color: var(--gg-paper);
     }
 
-    /* Taken out of flow so the brand stays centred on the bar whatever the
-       icon's width — centring is what the reference shows. */
     .gift-guide__menu-toggle {
       position: absolute;
       left: 1rem;
@@ -1601,8 +1341,6 @@
       cursor: pointer;
     }
 
-    /* The same two-icon swap as the product "+" triggers: both spans are in
-       the DOM and aria-expanded on the button picks which one is shown. */
     .gift-guide__menu-icon {
       display: flex;
     }
@@ -1623,7 +1361,6 @@
       font-size: 1rem;
     }
 
-    /* The expanded panel. gift-guide.js clears `hidden` to reveal it. */
     .gift-guide__topbar-panel {
       display: flex;
       flex-direction: column;
@@ -1640,29 +1377,14 @@
       font-size: 0.875rem;
     }
 
-    /* Inset, not full-bleed. Its natural width is already what the reference
-       shows — hamburger.png puts the button at 184 of 295px, inset ~19% either
-       side, which lands within a few pixels of what the label plus the button's
-       own 2.5em padding comes to — so the panel's `align-items: center` does
-       the centring and no width is set at all. */
     .gift-guide__choose-gift {
       width: auto;
     }
 
     /* ---------- Hero ---------- */
-
-    /* Both wrappers are flattened to `display: contents`, which makes the
-       heading, subtext, illustration and button siblings in one flex column.
-       That is what lets `order` drop the illustration between the subtext and
-       the button — the reference's order — without touching the markup, and so
-       without disturbing the desktop two-column split. Their own padding and
-       gap go away with them, so each item carries its own below. */
     .gift-guide__hero {
       display: flex;
       flex-direction: column;
-      /* Shared by the illustration's bottom padding and the button's offset
-         further down, which are measured from the same edge and would drift
-         apart if each carried its own copy of the number. */
       --gg-art-space-end: 1.15rem;
     }
 
@@ -1671,7 +1393,6 @@
       display: contents;
     }
 
-    /* One illustration on mobile; the bottom frame is dropped. */
     .gift-guide__hero-aside {
       display: none;
     }
@@ -1679,16 +1400,12 @@
     .gift-guide__heading {
       order: 1;
       padding: 2rem 1.25rem 0;
-      /* Free to wrap here — there is vertical room — so this is sized against
-         the viewport rather than the narrow desktop copy column. */
       font-size: clamp(1.75rem, 8vw, 2.5rem);
       text-align: center;
     }
 
     .gift-guide__subtext {
       order: 2;
-      /* Replaces the desktop 88%, which was a share of a copy column that no
-         longer exists. The auto margins centre what the measure leaves over. */
       max-width: 32ch;
       margin-inline: auto;
       padding: 0.75rem 1.25rem 0;
@@ -1696,7 +1413,6 @@
       text-align: center;
     }
 
-    /* The condensed line takes over here; the full paragraph is set aside. */
     .gift-guide__subtext--desktop {
       display: none;
     }
@@ -1705,28 +1421,11 @@
       display: block;
     }
 
-    /* Measured off mobiledesign.png: at its 227px width the artwork clears the
-       subtext above by 16px and the banner rule below by 11px, which scale to
-       ~26px and ~18px at a 375px viewport. The start value is set a little
-       under 26px because the subtext's line-height already leaves roughly 4px
-       of leading beneath its last line. */
     .gift-guide__hero-top {
       order: 3;
       padding-block: 1.4rem var(--gg-art-space-end);
     }
 
-    /* Zoomed and centre-cropped rather than scaled to fit. The mobile source is
-       2.6:1 but the reference frames it at 3:2, so `cover` scales the artwork
-       up until the box is filled by height, trimming ~21% off each side and
-       leaving the middle — which is the part the Shop Now button sits over.
-       Only the sides are lost: the box is relatively taller than the source, so
-       cover scales by height and the full height of the artwork still shows.
-
-       The ratio is cross-checked two ways rather than eyeballed. The button
-       measures 51.4% of the frame's width in Screenshot_7.png and 51.5% in
-       mobiledesign.png, so the green guides in Screenshot_7 are the phone
-       frame; scaling between the two by that frame width then puts the
-       illustration at 181px against a 272px frame, i.e. 1.503. */
     .gift-guide__hero-top .gift-guide__hero-frame {
       aspect-ratio: 3 / 2;
       height: auto;
@@ -1734,27 +1433,9 @@
       object-position:45% center;
     }
 
-    /* Lifted over the foot of the illustration, as in the reference.
-
-       Taken out of flow rather than pulled up with a negative margin, which is
-       the one thing that cannot work here: a column flex container sizes itself
-       to the sum of its items' outer heights, so a negative margin would shorten
-       the hero by the amount of the overlap and the banner below would ride up
-       over the bottom of the artwork. Out of flow, the illustration stays the
-       last in-flow item, so the hero still ends exactly at its bottom edge —
-       which is also what makes `bottom` here measure from that edge.
-
-       z-index is load-bearing, not decorative: the illustration is an
-       inline-level replaced element and paints in a later step than an in-flow
-       block box, so the button would otherwise sit underneath it. */
     .gift-guide__hero-button {
       position: absolute;
       z-index: 1;
-      /* In the reference the button's foot clears the artwork's bottom by 20 of
-         its 151px of illustration, i.e. 13%. The crop box above is 3:2, so the
-         illustration is 66.7vw tall and 13% of that is ~8.7vw. The padding
-         beneath the artwork is added on top because `bottom` measures from the
-         hero's edge, which sits below that padding rather than on the artwork. */
       bottom: calc(var(--gg-art-space-end) + 8.7vw);
       left: 50%;
       transform: translateX(-50%);
@@ -1762,17 +1443,12 @@
 
     /* ---------- Banner strip ---------- */
 
-    /* Reads as the foot of the hero rather than a band of its own: it takes the
-       same background the illustration sits on, and hairlines above and below
-       do the separating that the grey did on desktop. The text itself is
-       untouched and simply wraps in the narrower column. */
     .gift-guide__banner {
       padding-block: 0.9rem;
       border-block: 1px solid rgb(var(--color-foreground-rgb) / 15%);
       background-color: var(--gg-paper);
     }
 
-    /* The short string takes over here; the long one is set aside. */
     .gift-guide__banner-text--desktop {
       display: none;
     }
@@ -1784,7 +1460,6 @@
     /* ---------- Product grid ---------- */
 
     .gift-guide {
-      /* The desktop gutter is most of a column once there are only two. */
       --gg-gutter: 0.5rem;
     }
 
@@ -1793,8 +1468,7 @@
     }
 
     .gift-guide__products-heading {
-      /* The fixed 2.25rem cannot hold the heading on one line at phone widths;
-         the reference has it smaller and centred over the grid. */
+
       font-size: clamp(1.375rem, 6vw, 1.75rem);
       text-align: center;
     }
@@ -1803,10 +1477,6 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    /* There is no hover on touch, so the trigger cannot be hover-revealed — it
-       stays visible on every card, which is also what the reference shows. The
-       hover and aria-expanded rules above resolve to these same values, so they
-       have nothing left to change. */
     .gift-guide__quick-trigger {
       width: 28px;
       height: 28px;
@@ -1814,10 +1484,6 @@
       transform: translate(-50%, -50%) scale(1);
     }
 
-    /* ---------- Stage 1: preview layered over the image ---------- */
-
-    /* Same interaction, but a half-width card gives it roughly half the room:
-       pulled nearer the edges, with its parts scaled to fit. */
     .gift-guide__preview {
       inset-inline: 4%;
       bottom: 4%;
