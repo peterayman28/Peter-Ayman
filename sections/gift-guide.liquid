@@ -894,11 +894,7 @@
   /* ---------- Hero ---------- */
 
   .gift-guide__hero {
-    /* How far the bottom artwork is pulled over the copy column. The copy
-       reserves the same amount as padding so text never lands under the
-       artwork's opaque background. */
     --gg-hero-overlap: clamp(2rem, 5vw, 6.5rem);
-
     position: relative;
     width: 100%;
     max-width: var(--page-width, 1600px);
@@ -929,9 +925,6 @@
     margin-left: calc(var(--gg-hero-overlap) * -1);
   }
 
-  /* As the columns narrow the artwork gets shorter than the copy, which left a
-     white seam between it and the top frame. Filling the row height keeps the
-     two frames flush; it only crops once the copy is the taller of the two. */
   .gift-guide__hero-aside .gift-guide__hero-frame {
     height: 100%;
     object-fit: cover;
@@ -953,8 +946,6 @@
 
   .gift-guide__heading {
     margin: 0;
-    /* em, not rem, so the optical pull tracks the fluid font size instead of
-       growing proportionally larger as the heading shrinks. */
     margin-top: -0.35em;
     font-family: 'Jost', sans-serif;
     font-weight: 500;
@@ -966,10 +957,8 @@
   }
 
   .gift-guide__subtext {
-    /* Measure taken from design-reference/text.png: the copy wraps to three
-       lines at ~29em. An em measure holds those wrap points at any font size,
-       unlike a % of the column. min() lets it shrink with narrow columns. */
-    max-width: min(29em, 100%);
+
+    max-width: min(29em, 88%);
     margin-top: clamp(1rem, 2vw, 2rem);
     font-family: 'Jost', sans-serif;
     font-weight: 400;
