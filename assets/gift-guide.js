@@ -2,7 +2,7 @@
  * Gift Guide section behaviour — a two-stage product quick view.
  *
  * Stage 1: clicking a product image reveals a small preview card layered on top
- *          of that image (thumbnail, title, price, close button).
+ *          of that image (thumbnail, title, price).
  * Stage 2: clicking that preview card opens a centred <dialog> quick view with
  *          the larger image, description, colour swatches, size dropdown and an
  *          AJAX add-to-cart.
@@ -74,7 +74,6 @@ class GiftGuideComponent extends Component {
   connectedCallback() {
     super.connectedCallback();
 
-    // Clicking anywhere outside a product cell dismisses the stage 1 preview.
     document.addEventListener('click', this.#handleDocumentClick);
     document.addEventListener('keydown', this.#handleKeydown);
 
@@ -150,7 +149,7 @@ class GiftGuideComponent extends Component {
    *
    * @param {{ index: number }} data - Parsed from the `on:click` attribute.
    */
-openPreview({ index }) {
+  openPreview({ index }) {
     this.#closeAllPreviews();
 
     const preview = this.#previews[index];
@@ -167,8 +166,7 @@ openPreview({ index }) {
     if (focusable instanceof HTMLElement) focusable.focus();
   }
 
-
-    /**
+  /**
    * Toggles the preview for a product — opens it if closed, closes it if open.
    *
    * @param {{ index: number }} data - Parsed from the `on:click` attribute.
@@ -195,12 +193,10 @@ openPreview({ index }) {
     event.stopPropagation();
     this.#closeAllPreviews();
 
-    // Return focus to the grid image the preview belonged to.
     const trigger = this.querySelector(`[data-gift-guide-trigger="${index}"]`);
     if (trigger instanceof HTMLElement) trigger.focus();
   }
 
-  /** Hides every stage 1 preview. */
   #closeAllPreviews() {
     for (const preview of this.#previews) preview.hidden = true;
     for (const trigger of this.querySelectorAll('[data-gift-guide-trigger]')) {
