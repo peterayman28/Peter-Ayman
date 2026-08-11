@@ -891,13 +891,39 @@
     justify-self: end;
   }
 
+  /* The top bar is a 1fr auto 1fr grid and the button is nowrap, so it is the
+     one rigid item in the row: at tablet widths it held its full desktop size
+     and forced the brand and tagline to wrap around it. Scaling all three down
+     together keeps the bar on a single line. Kept above 750px so the mobile
+     dropdown panel, where the button is on its own row, is unaffected. */
+  @media screen and (min-width: 750px) {
+    .gift-guide__topbar-brand {
+      font-size: clamp(1.125rem, 2.3vw, 2rem);
+    }
+
+    .gift-guide__topbar-tagline {
+      font-size: clamp(0.8125rem, 1.15vw, 1rem);
+    }
+
+    .gift-guide__btn.gift-guide__choose-gift {
+      padding: 0.85em clamp(1.1em, 2.4vw, 2.1em);
+      font-size: clamp(0.75rem, 1.15vw, 1rem);
+    }
+  }
+
   /* ---------- Hero ---------- */
 
   .gift-guide__hero {
     /* How far the bottom artwork is pulled over the copy column. The copy
        reserves the same amount as padding so text never lands under the
-       artwork's opaque background. */
-    --gg-hero-overlap: clamp(2rem, 5vw, 6.5rem);
+       artwork's opaque background.
+
+       Measured against the hero's own width, not the viewport: the hero stops
+       growing at --page-width, so a plain vw here kept sliding the artwork
+       further left on screens wider than that while the section stayed put.
+       7.43% of 1400px is the original 6.5rem, so the cap is now reached at
+       exactly the page width and holds steady on every larger screen. */
+    --gg-hero-overlap: clamp(2rem, calc(min(100vw, var(--page-width, 1400px)) * 0.0743), 6.5rem);
 
     position: relative;
     width: 100%;
@@ -968,12 +994,16 @@
   .gift-guide__subtext {
     /* Measure taken from design-reference/text.png: the copy wraps to three
        lines at ~29em. An em measure holds those wrap points at any font size,
-       unlike a % of the column. min() lets it shrink with narrow columns. */
+       unlike a % of the column. min() lets it shrink with narrow columns.
+
+       The size is capped so 29em actually fits: at --page-width the copy
+       column is 619px, leaving 453px once the left padding and the artwork
+       overlap are taken out. 29em only fits that at <=15px. */
     max-width: min(29em, 100%);
     margin-top: clamp(1rem, 2vw, 2rem);
     font-family: 'Jost', sans-serif;
     font-weight: 400;
-    font-size: clamp(0.9375rem, 1.15vw, 1.125rem);
+    font-size: clamp(0.8125rem, 1.07vw, 0.9375rem);
     line-height: 1.6;
     letter-spacing: 0px;
   }
